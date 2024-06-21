@@ -42,3 +42,6 @@ class UNet(nn.Module):
             x = torch.cat([x, feature], dim=1)  # concatenate skip features
             x = block(x)  # pass through the block
         return self.head(x)  # reduce to 1 channel
+
+
+
