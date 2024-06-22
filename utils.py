@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import torch
 import numpy as np
+import re
+
 
 # TODO: Change the parameters?
 PATCH_SIZE = 16  # pixels per side of square patches
@@ -16,6 +18,9 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
     writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
 
     history = {}  # collects metrics at the end of each epoch
+
+    best_val_loss = float('inf')
+    best_model_weights = None
 
     for epoch in range(n_epochs):  # loop over the dataset multiple times
 
@@ -60,6 +65,12 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
         show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
+        if history[epoch]['val_loss'] < best_val_loss:
+            best_val_loss = history[epoch]['val_loss']
+            best_model_weights = model.state_dict().copy()
+
+    if best_model_weights is not None:
+        torch.save(best_model_weights, './model_checkpoints')
     print('Finished Training')
     # plot loss curves
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
@@ -162,6 +173,14 @@ def patch_accuracy_fn(y_hat, y):
     return (patches == patches_hat).float().mean()
 
 
+def create_submission(test_pred, test_filenames, submission_filename):
+    with open('./submissions/' + submission_filename, 'w') as f:
+        f.write('id,prediction\n')
+        for fn, patch_array in zip(sorted(test_filenames), test_pred):
+            img_number = int(re.search(r"\d+", fn).group(0))
+            for i in range(patch_array.shape[0]):
+                for j in range(patch_array.shape[1]):
+                    f.write("{:03d}_{}_{},{}\n".format(img_number, j*PATCH_SIZE, i*PATCH_SIZE, int(patch_array[i, j])))
 
 
 
