@@ -173,14 +173,5 @@ def patch_accuracy_fn(y_hat, y):
     return (patches == patches_hat).float().mean()
 
 
-def create_submission(test_pred, test_filenames, submission_filename):
-    with open('./submissions/' + submission_filename, 'w') as f:
-        f.write('id,prediction\n')
-        for fn, patch_array in zip(sorted(test_filenames), test_pred):
-            img_number = int(re.search(r"\d+", fn).group(0))
-            for i in range(patch_array.shape[0]):
-                for j in range(patch_array.shape[1]):
-                    f.write("{:03d}_{}_{},{}\n".format(img_number, j*PATCH_SIZE, i*PATCH_SIZE, int(patch_array[i, j])))
-
 
 
