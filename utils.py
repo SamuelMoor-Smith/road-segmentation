@@ -19,8 +19,7 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
 
     history = {}  # collects metrics at the end of each epoch
 
-    best_val_loss = float('inf')
-    best_model_weights = None
+    best_val_acc = 0
 
     for epoch in range(n_epochs):  # loop over the dataset multiple times
 
@@ -65,12 +64,10 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
         show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
-        if history[epoch]['val_loss'] < best_val_loss:
-            best_val_loss = history[epoch]['val_loss']
-            best_model_weights = model.state_dict().copy()
+        if history[epoch]['val_acc'] > best_val_acc:
+            best_val_acc = history[epoch]['val_acc']
+            torch.save(model.state_dict(), './model_checkpoints/' + name + '.pt')
 
-    if best_model_weights is not None:
-        torch.save(best_model_weights, './model_checkpoints/' + name + '.pth')
     print('Finished Training')
     # plot loss curves
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
