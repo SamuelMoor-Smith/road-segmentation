@@ -192,3 +192,5 @@ exploration/.ipynb_checkpoints/
 **/.ipynb_checkpoints/
 
 /tensorboard/
+/submissions/
+/model_checkpoints/
