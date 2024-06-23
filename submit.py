@@ -34,7 +34,7 @@ def create_predictions(model, device):
 
 def create_submission(submission_filename, model, device):
     test_pred, test_filenames = create_predictions(model, device)
-    with open('./submissions/' + submission_filename, 'w') as f:
+    with open('submissions/' + submission_filename, 'w') as f:
         f.write('id,prediction\n')
         for fn, patch_array in zip(sorted(test_filenames), test_pred):
             img_number = int(re.search(r"\d+", fn).group(0))
