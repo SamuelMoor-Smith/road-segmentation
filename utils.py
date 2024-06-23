@@ -12,7 +12,7 @@ VAL_SIZE = 10  # size of the validation set (number of images)
 CUTOFF = 0.25  # minimum average brightness for a mask patch to be classified as containing road
 
 
-def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs):
+def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs, name='best_model'):
     # training loop
     logdir = './tensorboard/net'
     writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
@@ -70,7 +70,7 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
             best_model_weights = model.state_dict().copy()
 
     if best_model_weights is not None:
-        torch.save(best_model_weights, './model_checkpoints')
+        torch.save(best_model_weights, './model_checkpoints/' + name + '.pth')
     print('Finished Training')
     # plot loss curves
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
