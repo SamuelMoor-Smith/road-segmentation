@@ -11,7 +11,9 @@ from glob import glob
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
-    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400)):
+    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400), test_size=0.2, random_state=42):
+        self.test_size = test_size
+        self.random_state = random_state
         self.data_dir = data_dir
         self.is_train = is_train
         self.device = device
@@ -26,7 +28,7 @@ class ImageDataset(torch.utils.data.Dataset):
 
         # Split into training and validation sets
         train_images, val_images, train_masks, val_masks = train_test_split(
-            images, masks, test_size=0.2, random_state=42
+            images, masks, test_size=self.test_size, random_state=self.random_state
         )
 
         self.x = train_images if self.is_train else val_images
