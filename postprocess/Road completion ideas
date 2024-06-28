@@ -1,0 +1,36 @@
+# Ideas to fill the gaps in the roads predicted, additionally to straighten the lines
+def enhance_and_threshold(image):
+    # Apply CLAHE
+    enhanced_image = apply_clahe(image)
+    
+    # Apply color space thresholding
+    segmented_image = color_space_thresholding(enhanced_image)
+    
+    return segmented_image
+
+def contour_straightening(mask):
+    # Find contours in the binary mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Create an empty mask to draw the straightened roads
+    straightened_mask = np.zeros_like(mask)
+    
+    for contour in contours:
+        # Approximate the contour with a straight line
+        epsilon = 0.01 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+        
+        # Draw the approximated contour on the new mask
+        cv2.drawContours(straightened_mask, [approx], -1, (255), thickness=cv2.FILLED)
+    
+    return straightened_mask
+
+
+def apply_smoothing(mask):
+    # Apply Gaussian blur
+    smoothed_mask = cv2.GaussianBlur(mask, (5, 5), 0)
+    
+    # Threshold to binarize the result
+    _, smoothed_mask = cv2.threshold(smoothed_mask, 127, 255, cv2.THRESH_BINARY)
+    
+    return smoothed_mask
