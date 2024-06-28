@@ -84,6 +84,15 @@ class ImageDataset(torch.utils.data.Dataset):
             segmented = cv2.bitwise_and(image, image, mask=mask)
             
             return segmented
+
+        def enhance_and_threshold(image):
+            # Apply CLAHE
+            enhanced_image = apply_clahe(image)
+            
+            # Apply color space thresholding
+            segmented_image = color_space_thresholding(enhanced_image)
+            
+            return segmented_image
         """
 
         
