@@ -66,10 +66,11 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
 
         if history[epoch]['val_acc'] > best_val_acc:
             best_val_acc = history[epoch]['val_acc']
-            torch.save(model.state_dict(), './model_checkpoints/' + name + '.pt')
+            torch.save(model.state_dict(), './model_checkpoints/' + name + 'best.pt')
 
     print('Finished Training')
     # plot loss curves
+    torch.save(model.state_dict(), './model_checkpoints/' + name + 'last.pt')
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
     plt.plot([v['val_loss'] for k, v in history.items()], label='Validation Loss')
     plt.ylabel('Loss')
