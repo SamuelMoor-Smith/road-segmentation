@@ -2,10 +2,10 @@ import torch
 from torch import nn
 from data.dataset import ImageDataset
 from models.UNet_provided import UNet
-from models.ResNetBackbone import ResNetBackbone
+from models.ResNetBackbone_deeper import ResNetBackbone
 from utils import train, accuracy_fn, patch_accuracy_fn
 
-data_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training'
+data_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches'
 
 device = 'cpu'#torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
