@@ -113,14 +113,13 @@ class ResNetBackbone(nn.Module):
         self.encoder = ResNetEncoder()
         self.bridge = ResBlock(256, 512, strides=[2, 1])
         self.decoder = ResNetDecoder()
-        self.projection = nn.Conv2d(64, 1, kernel_size=1)
+        self.projection = nn.Sequential(nn.Conv2d(64, 1, kernel_size=1), nn.Sigmoid())
 
     def forward(self, x):
         encoder_features = self.encoder(x)
         x = self.bridge(encoder_features[2])
         x = self.decoder(x, encoder_features)
-        x = nn.Sequential(self.projection(x),
-                          nn.Sigmoid())
+        x = nn.Sequential(self.projection(x))
 
         return x
 
