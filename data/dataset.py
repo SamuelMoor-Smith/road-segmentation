@@ -42,60 +42,6 @@ class ImageDataset(torch.utils.data.Dataset):
         self.n_samples = len(self.x)
 
     def _preprocess(self, x, y):
-        # ideas to increase color contrast between buildings and roads
-        """
-        def apply_clahe(image):
-        # Convert image to LAB color space
-            lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-            l, a, b = cv2.split(lab)
-            
-            # Apply CLAHE to the L-channel
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-            cl = clahe.apply(l)
-            
-            # Merge the CLAHE-enhanced L-channel back with A and B channels
-            limg = cv2.merge((cl, a, b))
-            
-            # Convert back to BGR color space
-            enhanced_image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-            return enhanced_image
-
-        def histogram_equalization(image):
-            # Convert to grayscale
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            
-            # Apply histogram equalization
-            equalized = cv2.equalizeHist(gray)
-            
-            return equalized
-
-        def color_space_thresholding(image):
-            # Convert to HSV color space
-            hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-            
-            # Define thresholds for the H, S, and V channels
-            lower_hsv = np.array([0, 0, 0])
-            upper_hsv = np.array([180, 255, 30])
-            
-            # Threshold the HSV image
-            mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
-            
-            # Apply the mask to get the segmented road
-            segmented = cv2.bitwise_and(image, image, mask=mask)
-            
-            return segmented
-
-        def enhance_and_threshold(image):
-            # Apply CLAHE
-            enhanced_image = apply_clahe(image)
-            
-            # Apply color space thresholding
-            segmented_image = color_space_thresholding(enhanced_image)
-            
-            return segmented_image
-        """
-
-        
         # to keep things simple we will not apply transformations to each sample,
         # but it would be a very good idea to look into preprocessing
         return x, y
