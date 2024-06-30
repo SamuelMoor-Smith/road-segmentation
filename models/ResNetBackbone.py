@@ -119,7 +119,7 @@ class ResNetBackbone(nn.Module):
         encoder_features = self.encoder(x)
         x = self.bridge(encoder_features[2])
         x = self.decoder(x, encoder_features)
-        x = nn.Sequential(self.projection(x))
+        x = self.projection(x)
 
         return x
 
