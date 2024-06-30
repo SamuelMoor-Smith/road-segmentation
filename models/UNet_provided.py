@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class Block(nn.Module):
     # a repeating structure composed of two convolutional layers with batch normalization and ReLU activations
