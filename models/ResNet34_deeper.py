@@ -80,7 +80,7 @@ class ResNetEncoder(nn.Module):
         x4 = self.block4(x3)
         x5 = self.block5(x4)
 
-        return [x2, x3, x4, x5]
+        return [x1, x2, x3, x4, x5]
 
 
 class ResNetDecoder(nn.Module):
@@ -95,24 +95,27 @@ class ResNetDecoder(nn.Module):
         self.block3 = ResBlock(256, 128)
         self.upconv4 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.block4 = ResBlock(128, 64)
+        self.block5 = ResBlock(128, 64)
 
     def forward(self, x, encoder_features):
         x = self.upconv1(x)
-        x = torch.cat([x, encoder_features[3]], dim=1)
+        x = torch.cat([x, encoder_features[4]], dim=1)
         x = self.block1(x)
 
         x = self.upconv2(x)
-        x = torch.cat([x, encoder_features[2]], dim=1)
+        x = torch.cat([x, encoder_features[3]], dim=1)
         x = self.block2(x)
 
         x = self.upconv3(x)
-        x = torch.cat([x, encoder_features[1]], dim=1)
+        x = torch.cat([x, encoder_features[2]], dim=1)
         x = self.block3(x)
 
         x = self.upconv4(x)
-        x = torch.cat([x, encoder_features[0]], dim=1)
+        x = torch.cat([x, encoder_features[1]], dim=1)
         x = self.block4(x)
 
+        x = torch.cat([x, encoder_features[0]], dim=1)
+        x = self.block5(x)
         return x
 
 
@@ -127,7 +130,7 @@ class ResNetBackbone(nn.Module):
 
     def forward(self, x):
         encoder_features = self.encoder(x)
-        x = self.bridge(encoder_features[3])
+        x = self.bridge(encoder_features[4])
         x = self.decoder(x, encoder_features)
         x = self.projection(x)
 
