@@ -68,17 +68,19 @@ class ResNetEncoder(nn.Module):
         resnet = models.resnet34(pretrained=True)
 
         self.block1 = Block(3, 64)
-        self.block2 = resnet.layer2
-        self.block3 = resnet.layer3
-        self.block4 = resnet.layer4
+        self.block2 = resnet.layer1
+        self.block3 = resnet.layer2
+        self.block4 = resnet.layer3
+        self.block5 = resnet.layer4
 
     def forward(self, x):
         x1 = self.block1(x)
         x2 = self.block2(x1)
         x3 = self.block3(x2)
         x4 = self.block4(x3)
+        x5 = self.block5(x4)
 
-        return [x1, x2, x3, x4]
+        return [x2, x3, x4, x5]
 
 
 class ResNetDecoder(nn.Module):
