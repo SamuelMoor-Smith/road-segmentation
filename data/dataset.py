@@ -6,6 +6,22 @@ import cv2
 from sklearn.model_selection import train_test_split
 from PIL import Image
 from glob import glob
+import random
+import torchvision.transforms.functional as TF
+
+def apply_transforms(image, mask, augment_probability):
+
+    # Apply random affine transformations
+    if random.random() < augment_probability:
+        angle = random.uniform(-10, 10)  # degrees
+        translate = [random.uniform(-image.size(2) * 0.2, image.size(2) * 0.2), random.uniform(-image.size(1) * 0.2, image.size(1) * 0.2)]
+        scale = random.uniform(0.9, 1.1)
+        shear = random.uniform(-10, 10)
+
+        image = TF.affine(image, angle=angle, translate=translate, scale=scale, shear=shear)
+        mask = TF.affine(mask, angle=angle, translate=translate, scale=scale, shear=shear)
+
+    return image, mask
 
 
 class ImageDataset(torch.utils.data.Dataset):
@@ -42,8 +58,13 @@ class ImageDataset(torch.utils.data.Dataset):
         self.n_samples = len(self.x)
 
     def _preprocess(self, x, y):
-        # to keep things simple we will not apply transformations to each sample,
-        # but it would be a very good idea to look into preprocessing
+        if self.is_train:
+            x, y = apply_transforms(
+                x,
+                y,
+                augment_probability=0.5,
+            )
+
         return x, y
 
     def __getitem__(self, item):
