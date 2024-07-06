@@ -13,16 +13,16 @@ class DilationBlock(nn.Module):
         self.dil2 = nn.Conv2d(channels, channels, kernel_size=3, padding=2, dilation=2)
         self.dil3 = nn.Conv2d(channels, channels, kernel_size=3, padding=4, dilation=4)
         self.dil4 = nn.Conv2d(channels, channels, kernel_size=3, padding=8, dilation=8)
-        self.dil5 = nn.Conv2d(channels, channels, kernel_size=3, padding=16, dilation=16)
+        #self.dil5 = nn.Conv2d(channels, channels, kernel_size=3, padding=16, dilation=16)
 
     def forward(self, x):
         dil1 = F.relu(self.dil1(x))
         dil2 = F.relu(self.dil2(dil1))
         dil3 = F.relu(self.dil3(dil2))
         dil4 = F.relu(self.dil4(dil3))
-        dil5 = F.relu(self.dil5(dil4))
+        #dil5 = F.relu(self.dil5(dil4))
 
-        out = x + dil1 + dil2 + dil3 + dil4 + dil5
+        out = x + dil1 + dil2 + dil3 + dil4 #+ dil5
 
         return out
 
