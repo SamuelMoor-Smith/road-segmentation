@@ -7,20 +7,26 @@ from sklearn.model_selection import train_test_split
 from PIL import Image
 from glob import glob
 import random
-import torchvision.transforms.functional as TF
+from torchvision import transforms
 
-def apply_transforms(image, mask, augment_probability):
 
+def apply_transforms(image, mask, augment_probability=0.75):
     # Apply random affine transformations
-    if random.random() < augment_probability:
-        angle = random.uniform(-10, 10)  # degrees
-        translate = [random.uniform(-image.size(2) * 0.2, image.size(2) * 0.2), random.uniform(-image.size(1) * 0.2, image.size(1) * 0.2)]
-        scale = random.uniform(0.9, 1.1)
-        shear = random.uniform(-10, 10)
+    random_val = random.random()
+    if random_val < augment_probability:
+        if random_val < 0.25:
+            image = transforms.functional.hflip(image)
+            mask = transforms.functional.hflip(mask)
 
-        image = TF.affine(image, angle=angle, translate=translate, scale=scale, shear=shear)
-        mask = TF.affine(mask, angle=angle, translate=translate, scale=scale, shear=shear)
-
+        # Random vertical flip
+        elif random_val > 0.25 and random_val < 0.5:
+            image = transforms.functional.vflip(image)
+            mask = transforms.functional.vflip(mask)
+        # Random rotation
+        else:
+            angle = random.uniform(-10, 10)
+            image = transforms.functional.rotate(image, angle)
+            mask = transforms.functional.rotate(mask, angle)
     return image, mask
 
 
