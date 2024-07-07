@@ -58,14 +58,13 @@ def crop_image_and_mask(x):
     return crops
 
 
-def create_predictions_224_patches(model, device):
+def create_predictions_224_patches(model, device, cutoff=0.25):
     test_path = 'data/test/images'
     test_filenames = (glob(test_path + '/*.png'))
     test_images = load_all_from_path(test_path)
     batch_size = test_images.shape[0]
     size = test_images.shape[1:3]
     # we also need to resize the test images. This might not be the best ideas depending on their spatial resolution.
-    test_images = np.stack([cv2.resize(img, dsize=(384, 384)) for img in test_images], 0)
     test_images = test_images[:, :, :, :3]
     test_images = np_to_tensor(np.moveaxis(test_images, -1, 1), device)
     test_pred = []
@@ -83,11 +82,10 @@ def create_predictions_224_patches(model, device):
         test_pred.append(final_mask)
     test_pred = np.concatenate(test_pred, 0)
     test_pred = np.moveaxis(test_pred, 1, -1)  # CHW to HWC
-    test_pred = np.stack([cv2.resize(img, dsize=size) for img in test_pred], 0)  # resize to original shape
     # now compute labels
     test_pred = test_pred.reshape((-1, size[0] // PATCH_SIZE, PATCH_SIZE, size[0] // PATCH_SIZE, PATCH_SIZE))
     test_pred = np.moveaxis(test_pred, 2, 3)
-    test_pred = np.round(np.mean(test_pred, (-1, -2)) > CUTOFF)
+    test_pred = np.round(np.mean(test_pred, (-1, -2)) > cutoff)
     return test_pred, test_filenames
 
 
