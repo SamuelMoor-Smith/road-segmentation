@@ -45,8 +45,14 @@ class ImageDataset(torch.utils.data.Dataset):
         self._load_data()
 
     def _load_data(self):  # not very scalable, but good enough for now
-        images = load_all_from_path(os.path.join(self.data_dir, 'images'))[:, :, :, :3]
-        masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth'))
+        images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
+        masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
+
+        images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
+        masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
+
+        images = np.concatenate([images, images_epfl], 0)
+        masks = np.concatenate([masks, masks_epfl], 0)
 
         # Split into training and validation sets
         train_images, val_images, train_masks, val_masks = train_test_split(
