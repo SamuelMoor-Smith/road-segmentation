@@ -55,13 +55,22 @@ class ImageDataset(torch.utils.data.Dataset):
 
         self.x = train_images if self.is_train else val_images
         self.y = train_masks if self.is_train else val_masks
+
+        print(f"Initial shapes: x = {self.x.shape}, y = {self.y.shape}")
+
         if self.use_patches:  # split each image into patches
             self.x, self.y = image_to_patches(self.x, self.y)
         elif self.resize_to != (self.x.shape[1], self.x.shape[2]):  # resize images
             self.x = np.stack([cv2.resize(img, dsize=self.resize_to) for img in self.x], 0)
             self.y = np.stack([cv2.resize(mask, dsize=self.resize_to) for mask in self.y], 0)
+
+        print(f"After resizing/patching shapes: x = {self.x.shape}, y = {self.y.shape}")
+
         self.x = np.moveaxis(self.x, -1, 1)  # pytorch works with CHW format instead of HWC
         self.n_samples = len(self.x)
+
+        print(f"Final shapes: x = {self.x.shape}, y = {self.y.shape}")
+
 
     def _preprocess(self, x, y):
         if self.is_train:
