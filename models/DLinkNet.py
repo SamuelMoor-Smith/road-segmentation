@@ -51,15 +51,15 @@ class DecoderBlock(nn.Module):
         # batch norm and relu between all conv layers
 
         self.conv1 = nn.Conv2d(in_channels, in_channels // 4, kernel_size=1)
-        self.norm1 = FRN(in_channels // 4)
+        self.norm1 = nn.BatchNorm2d(in_channels // 4)
         self.relu1 = nn.ReLU()
 
         self.conv2 = nn.ConvTranspose2d(in_channels // 4, in_channels // 4, kernel_size=3, stride=2, padding=1, output_padding=1)
-        self.norm2 = FRN(in_channels // 4)
+        self.norm2 = nn.BatchNorm2d(in_channels // 4)
         self.relu2 = nn.ReLU()
 
         self.conv3 = nn.Conv2d(in_channels // 4, out_channels, kernel_size=1)
-        self.norm3 = FRN(out_channels)
+        self.norm3 = nn.BatchNorm2d(out_channels)
         self.relu3 = nn.ReLU()
 
     def forward(self, x):
@@ -104,11 +104,11 @@ class LinkNet(nn.Module):
         self.decoder1 = DecoderBlock(filter_sizes[0], filter_sizes[0])
 
         self.fin_full_conv1 = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2)
-        self.fin_bn1 = FRN(32)
+        self.fin_bn1 = nn.BatchNorm2d(32)
         self.fin_relu1 = nn.ReLU()
 
         self.fin_conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-        self.fin_bn2 = FRN(32)
+        self.fin_bn2 = nn.BatchNorm2d(32)
         self.fin_relu2 = nn.ReLU()
 
         self.fin_full_conv_3 = nn.ConvTranspose2d(32, 1, kernel_size=2, padding=1)

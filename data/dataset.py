@@ -68,7 +68,7 @@ class ImageDataset(torch.utils.data.Dataset):
             x, y = apply_transforms(
                 x,
                 y,
-                augment_probability=0.5,
+                augment_probability=0.75,
             )
 
         return x, y
