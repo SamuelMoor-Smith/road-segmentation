@@ -45,22 +45,27 @@ class ImageDataset(torch.utils.data.Dataset):
         self._load_data()
 
     def _load_data(self):  # not very scalable, but good enough for now
-        images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
-        masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
+        if self.is_train:
+            images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
+            masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
 
-        images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
-        masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
+            images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
+            masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
 
-        images = np.concatenate([images, images_epfl], 0)
-        masks = np.concatenate([masks, masks_epfl], 0)
-
+            images = np.concatenate([images, images_epfl], 0)
+            masks = np.concatenate([masks, masks_epfl], 0)
+        else:
+            images = load_all_from_path(os.path.join(self.data_dir, 'images', 'val'))[:, :, :, :3]
+            masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'val'))
         # Split into training and validation sets
-        train_images, val_images, train_masks, val_masks = train_test_split(
-            images, masks, test_size=self.test_size, random_state=self.random_state
-        )
+        #train_images, val_images, train_masks, val_masks = train_test_split(
+        #    images, masks, test_size=self.test_size, random_state=self.random_state
+        #)
 
-        self.x = train_images if self.is_train else val_images
-        self.y = train_masks if self.is_train else val_masks
+        #self.x = train_images if self.is_train else val_images
+        #self.y = train_masks if self.is_train else val_masks
+        self.x = images
+        self.y = masks
 
         if self.use_patches:  # split each image into patches
             self.x, self.y = image_to_patches(self.x, self.y)
@@ -70,7 +75,6 @@ class ImageDataset(torch.utils.data.Dataset):
 
         self.x = np.moveaxis(self.x, -1, 1)  # pytorch works with CHW format instead of HWC
         self.n_samples = len(self.x)
-
 
     def _preprocess(self, x, y):
         if self.is_train:
