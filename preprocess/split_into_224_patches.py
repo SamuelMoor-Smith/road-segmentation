@@ -8,13 +8,11 @@ import os
 import cv2
 
 # Change this location whether you want to extract patches from the training or test images
-inp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/images/epfl'
-outp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches/images/epfl'
+inp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/groundtruth/epfl'
+outp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches/groundtruth/epfl'
 
 
-output_images_dir = os.path.join(outp_dir, 'images_patches')
-
-os.makedirs(output_images_dir, exist_ok=True)
+os.makedirs(outp_dir, exist_ok=True)
 #os.makedirs(output_masks_dir, exist_ok=True)
 
 for img_name in os.listdir(inp_dir):
@@ -34,5 +32,5 @@ for img_name in os.listdir(inp_dir):
         img_patch = img[top_left_y:top_left_y+224, top_left_x:top_left_x+224]
         #mask_patch = mask[top_left_y:top_left_y+224, top_left_x:top_left_x+224]
 
-        cv2.imwrite(os.path.join(output_images_dir, f'{img_name[:-4]}_{i}.png'), img_patch)
+        cv2.imwrite(os.path.join(outp_dir, f'{img_name[:-4]}_{i}.png'), img_patch)
         #cv2.imwrite(os.path.join(output_masks_dir, f'{img_name[:-4]}_{i}.png'), mask_patch)
