@@ -194,3 +194,7 @@ exploration/.ipynb_checkpoints/
 /tensorboard/
 /submissions/
 /model_checkpoints/
+/data/training/images/deepglobe_filtered/
+/data/training/images/deepglobe_rejected/
+/data/training/groundtruth/deepglobe_filtered/
+/data/training/groundtruth/deepglobe_rejected/
