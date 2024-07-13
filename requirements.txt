@@ -8,3 +8,5 @@ tqdm
 jupyter
 opencv-python
 scikit-learn
+cython==0.29.36
+git+https://github.com/lucasb-eyer/pydensecrf.git
