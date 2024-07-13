@@ -8,8 +8,8 @@ import os
 import cv2
 
 # Change this location whether you want to extract patches from the training or test images
-inp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/groundtruth/epfl'
-outp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches/groundtruth/epfl'
+inp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/groundtruth/val'
+outp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches/groundtruth/val'
 
 
 os.makedirs(outp_dir, exist_ok=True)
@@ -22,7 +22,7 @@ for img_name in os.listdir(inp_dir):
     img_path = os.path.join(inp_dir, img_name)
     #mask_path = os.path.join(masks_dir, img_name)
 
-    img = cv2.imread(img_path)
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE) # use greyscale for mask
     #mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
     positions = [(0, 0), (0, 400 - 224), (400 - 224, 0), (400 - 224, 400 - 224)]

@@ -6,7 +6,7 @@ from models.DLinkNet import LinkNet
 from utils import accuracy_fn, patch_accuracy_fn
 from train import train
 
-data_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training'
+data_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches'
 
 device = 'cpu'#torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

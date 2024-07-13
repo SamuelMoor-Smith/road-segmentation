@@ -11,7 +11,8 @@ from preprocess import preprocess
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
-    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400)):
+    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400), only_eth=False):
+        self.only_eth = only_eth
         self.data_dir = data_dir
         self.is_train = is_train
         self.device = device
@@ -22,14 +23,18 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def _load_data(self):  # not very scalable, but good enough for now
         if self.is_train:
-            images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
-            masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
+            if self.only_eth:
+                images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
+                masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
+            else:
+                images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
+                masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
 
-            images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
-            masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
+                images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
+                masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
 
-            images = np.concatenate([images, images_epfl], 0)
-            masks = np.concatenate([masks, masks_epfl], 0)
+                images = np.concatenate([images, images_epfl], 0)
+                masks = np.concatenate([masks, masks_epfl], 0)
         else:
             images = load_all_from_path(os.path.join(self.data_dir, 'images', 'val'))[:, :, :, :3]
             masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'val'))
