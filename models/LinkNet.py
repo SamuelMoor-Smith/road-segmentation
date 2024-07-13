@@ -1,43 +1,8 @@
 import torch
 import torch.nn as nn
 from torchvision import models
-
+from models.blocks.DecoderBlock import DecoderBlock
 # follows the architecture described here: https://arxiv.org/pdf/1707.03718
-
-
-class DecoderBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(DecoderBlock, self).__init__()
-
-        # batch norm and relu between all conv layers
-
-        self.conv1 = nn.Conv2d(in_channels, in_channels // 4, kernel_size=1)
-        self.norm1 = nn.BatchNorm2d(in_channels // 4)
-        self.relu1 = nn.ReLU()
-
-        self.conv2 = nn.ConvTranspose2d(in_channels // 4, in_channels // 4, kernel_size=3, stride=2, padding=1, output_padding=1)
-        self.norm2 = nn.BatchNorm2d(in_channels // 4)
-        self.relu2 = nn.ReLU()
-
-        self.conv3 = nn.Conv2d(in_channels // 4, out_channels, kernel_size=1)
-        self.norm3 = nn.BatchNorm2d(out_channels)
-        self.relu3 = nn.ReLU()
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.norm1(x)
-        x = self.relu1(x)
-
-        x = self.conv2(x)
-        x = self.norm2(x)
-        x = self.relu2(x)
-
-        x = self.conv3(x)
-        x = self.norm3(x)
-        x = self.relu3(x)
-
-        return x
-
 
 
 class LinkNet(nn.Module):
@@ -72,7 +37,6 @@ class LinkNet(nn.Module):
         self.fin_relu2 = nn.ReLU()
 
         self.fin_full_conv_3 = nn.ConvTranspose2d(32, 1, kernel_size=2, padding=1)
-
 
     def forward(self, x):
         x = self.conv1(x)
