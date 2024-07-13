@@ -1,5 +1,5 @@
 import re
-from test import create_predictions
+from predict import create_predictions
 
 PATCH_SIZE = 16  # pixels per side of square patches
 

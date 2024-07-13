@@ -96,7 +96,3 @@ def patch_accuracy_fn(y_hat, y):
     patches_hat = y_hat.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
     patches = y.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
     return (patches == patches_hat).float().mean()
-
-
-
-
