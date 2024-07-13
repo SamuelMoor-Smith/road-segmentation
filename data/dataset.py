@@ -3,39 +3,15 @@ import torch
 import numpy as np
 from utils import image_to_patches, np_to_tensor
 import cv2
-from sklearn.model_selection import train_test_split
 from PIL import Image
 from glob import glob
-import random
-from torchvision import transforms
-
-
-def apply_transforms(image, mask, augment_probability=0.75):
-    # Apply random affine transformations
-    random_val = random.random()
-    if random_val < augment_probability:
-        if random_val < 0.25:
-            image = transforms.functional.hflip(image)
-            mask = transforms.functional.hflip(mask)
-
-        # Random vertical flip
-        elif random_val > 0.25 and random_val < 0.5:
-            image = transforms.functional.vflip(image)
-            mask = transforms.functional.vflip(mask)
-        # Random rotation
-        else:
-            angle = random.uniform(-10, 10)
-            image = transforms.functional.rotate(image, angle)
-            mask = transforms.functional.rotate(mask, angle)
-    return image, mask
+from preprocess import preprocess
 
 
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
-    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400), test_size=0.2, random_state=42):
-        self.test_size = test_size
-        self.random_state = random_state
+    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400)):
         self.data_dir = data_dir
         self.is_train = is_train
         self.device = device
@@ -57,13 +33,7 @@ class ImageDataset(torch.utils.data.Dataset):
         else:
             images = load_all_from_path(os.path.join(self.data_dir, 'images', 'val'))[:, :, :, :3]
             masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'val'))
-        # Split into training and validation sets
-        #train_images, val_images, train_masks, val_masks = train_test_split(
-        #    images, masks, test_size=self.test_size, random_state=self.random_state
-        #)
 
-        #self.x = train_images if self.is_train else val_images
-        #self.y = train_masks if self.is_train else val_masks
         self.x = images
         self.y = masks
 
@@ -78,7 +48,7 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def _preprocess(self, x, y):
         if self.is_train:
-            x, y = apply_transforms(
+            x, y = preprocess.apply_transforms(
                 x,
                 y,
                 augment_probability=0.75,
