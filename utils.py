@@ -20,6 +20,7 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
     history = {}  # collects metrics at the end of each epoch
 
     best_val_acc = 0
+    best_epoch = 0
 
     for epoch in range(n_epochs):  # loop over the dataset multiple times
 
@@ -63,15 +64,19 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
           writer.add_scalar(k, v, epoch)
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
 
-        # only do this every 10 epochs
-        if epoch % 10 == 0:
-            show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+        if epoch < 30:
+            if epoch % 10 == 0:
+                show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
-        if history[epoch]['val_acc'] > best_val_acc:
-            best_val_acc = history[epoch]['val_acc']
+        if history[epoch]['val_patch_acc'] > best_val_acc:
+            if epoch > 30:
+                show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+            best_epoch = epoch + 1
+            best_val_acc = history[epoch]['val_patch_acc']
             torch.save(model.state_dict(), path + '_best.pt')
 
     print('Finished Training')
+    print(f"Best validation accuracy: {best_val_acc} in Epoch {best_epoch}")
     # plot loss curves
     torch.save(model.state_dict(), path + '_last.pt')
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
