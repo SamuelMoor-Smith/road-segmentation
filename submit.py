@@ -4,7 +4,7 @@ from glob import glob
 import numpy as np
 import cv2
 from utils import np_to_tensor
-
+from postprocess import crf
 
 PATCH_SIZE = 16  # pixels per side of square patches
 VAL_SIZE = 10  # size of the validation set (number of images)
@@ -14,11 +14,11 @@ CUTOFF = 0.25  # minimum average brightness for a mask patch to be classified as
 def create_predictions(model, device):
     test_path = 'data/test/images'
     test_filenames = (glob(test_path + '/*.png'))
-    test_images = load_all_from_path(test_path)
-    batch_size = test_images.shape[0]
-    size = test_images.shape[1:3]
+    orig_test_images = load_all_from_path(test_path)
+    batch_size = orig_test_images.shape[0]
+    size = orig_test_images.shape[1:3]
     # we also need to resize the test images. This might not be the best ideas depending on their spatial resolution.
-    test_images = np.stack([cv2.resize(img, dsize=(384, 384)) for img in test_images], 0)
+    test_images = np.stack([cv2.resize(img, dsize=(384, 384)) for img in orig_test_images], 0)
     test_images = test_images[:, :, :, :3]
     test_images = np_to_tensor(np.moveaxis(test_images, -1, 1), device)
     test_pred = [model(t).detach().cpu().numpy() for t in test_images.unsqueeze(1)]
@@ -26,6 +26,17 @@ def create_predictions(model, device):
     test_pred = np.moveaxis(test_pred, 1, -1)  # CHW to HWC
     test_pred = np.stack([cv2.resize(img, dsize=size) for img in test_pred], 0)  # resize to original shape
     # now compute labels
+
+    crf_refined = []
+    for i, image in enumerate(orig_test_images):
+        image = (image * 255).astype(np.uint8)
+        image = image[:, :, :3]
+        pred = test_pred[i]
+        res = crf.dense_crf(image, pred)
+        crf_refined.append(res)
+
+    test_pred = np.stack(crf_refined)
+
     test_pred = test_pred.reshape((-1, size[0] // PATCH_SIZE, PATCH_SIZE, size[0] // PATCH_SIZE, PATCH_SIZE))
     test_pred = np.moveaxis(test_pred, 2, 3)
     test_pred = np.round(np.mean(test_pred, (-1, -2)) > CUTOFF)
