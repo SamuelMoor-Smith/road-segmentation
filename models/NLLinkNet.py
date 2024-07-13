@@ -1,6 +1,5 @@
 # this is all taken from https://github.com/yswang1717/NLLinkNet
 from torchvision import models
-import torch
 from torch import nn
 from torch.nn import functional as F
 from models.blocks.DecoderBlock import DecoderBlock
@@ -51,7 +50,7 @@ class NL34_LinkNet(nn.Module):  # add non-local block
         e4 = self.encoder4(e4)
 
         # Center
-        # e4 = self.dblock(e4)
+        e4 = self.dblock(e4)
 
         # Decoder
         d4 = self.decoder4(e4) + e3

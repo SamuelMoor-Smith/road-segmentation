@@ -8,19 +8,20 @@ import os
 import cv2
 
 # Change this location whether you want to extract patches from the training or test images
-data_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/test'
+inp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/images/epfl'
+outp_dir = '/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training/224_patches/images/epfl'
 
-images_dir = os.path.join(data_dir, 'images')
-#masks_dir = os.path.join(data_dir, 'groundtruth')
 
-output_images_dir = os.path.join(data_dir, 'images_patches')
-#output_masks_dir = os.path.join(data_dir, 'groundtruth_patches')
+output_images_dir = os.path.join(outp_dir, 'images_patches')
 
 os.makedirs(output_images_dir, exist_ok=True)
 #os.makedirs(output_masks_dir, exist_ok=True)
 
-for img_name in os.listdir(images_dir):
-    img_path = os.path.join(images_dir, img_name)
+for img_name in os.listdir(inp_dir):
+    # Skip the .DS_Store file
+    if img_name.startswith('.'):
+        continue
+    img_path = os.path.join(inp_dir, img_name)
     #mask_path = os.path.join(masks_dir, img_name)
 
     img = cv2.imread(img_path)
