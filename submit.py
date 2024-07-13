@@ -27,15 +27,15 @@ def create_predictions(model, device):
     test_pred = np.stack([cv2.resize(img, dsize=size) for img in test_pred], 0)  # resize to original shape
     # now compute labels
 
-    crf_refined = []
-    for i, image in enumerate(orig_test_images):
-        image = (image * 255).astype(np.uint8)
-        image = image[:, :, :3]
-        pred = test_pred[i]
-        res = crf.dense_crf(image, pred)
-        crf_refined.append(res)
+    #crf_refined = []
+    #for i, image in enumerate(orig_test_images):
+    #    image = (image * 255).astype(np.uint8)
+    #    image = image[:, :, :3]
+    #    pred = test_pred[i]
+    #    res = crf.dense_crf(image, pred)
+    #    crf_refined.append(res)
 
-    test_pred = np.stack(crf_refined)
+    #test_pred = np.stack(crf_refined)
 
     test_pred = test_pred.reshape((-1, size[0] // PATCH_SIZE, PATCH_SIZE, size[0] // PATCH_SIZE, PATCH_SIZE))
     test_pred = np.moveaxis(test_pred, 2, 3)
