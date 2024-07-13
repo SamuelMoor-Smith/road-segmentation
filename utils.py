@@ -12,7 +12,7 @@ VAL_SIZE = 10  # size of the validation set (number of images)
 CUTOFF = 0.25  # minimum average brightness for a mask patch to be classified as containing road
 
 
-def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs, name='best_model'):
+def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs, path):
     # training loop
     logdir = './tensorboard/net'
     writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
@@ -62,15 +62,18 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         for k, v in history[epoch].items():
           writer.add_scalar(k, v, epoch)
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
-        show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+
+        # only do this every 10 epochs
+        if epoch % 10 == 0:
+            show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
         if history[epoch]['val_acc'] > best_val_acc:
             best_val_acc = history[epoch]['val_acc']
-            torch.save(model.state_dict(), './model_checkpoints/' + name + 'best.pt')
+            torch.save(model.state_dict(), path + '_best.pt')
 
     print('Finished Training')
     # plot loss curves
-    torch.save(model.state_dict(), './model_checkpoints/' + name + 'last.pt')
+    torch.save(model.state_dict(), path + '_last.pt')
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
     plt.plot([v['val_loss'] for k, v in history.items()], label='Validation Loss')
     plt.ylabel('Loss')
