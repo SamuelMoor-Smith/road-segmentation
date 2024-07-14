@@ -5,7 +5,7 @@ from utils import image_to_patches, np_to_tensor
 import cv2
 from PIL import Image
 from glob import glob
-from preprocess import preprocess
+from preprocess import augment
 
 
 class ImageDataset(torch.utils.data.Dataset):
@@ -56,16 +56,23 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def _preprocess(self, x, y):
         if self.is_train:
-            x, y = preprocess.apply_transforms(
-                x,
-                y,
-                augment_probability=0.75,
-            )
+            augmentor = augment.affine()  # Call the affine function directly
+            x = x.transpose(1, 2, 0) # Change from CxHxW to HxWxC for Albumentations
+            y = y.transpose(1, 2, 0)
+            augmented = augmentor(image=x, mask=y)
+            x_augmented = augmented['image']
+            y_augmented = augmented['mask']
+
+            x_augmented = x_augmented.transpose(2, 0, 1) # Change back to CxHxW
+            y_augmented = y_augmented.transpose(2, 0, 1)
+            return x_augmented, y_augmented
 
         return x, y
 
     def __getitem__(self, item):
-        return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
+        x, y = self.x[item], self.y[[item]]
+        x, y = self._preprocess(x, y)
+        return np_to_tensor(x, self.device), np_to_tensor(y, self.device)
 
     def __len__(self):
         return self.n_samples
