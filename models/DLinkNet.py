@@ -3,7 +3,7 @@ import torch.nn as nn
 from torchvision import models
 from models.blocks.DecoderBlock import DecoderBlock
 from models.blocks.DilationBlock import DilationBlock
-from models.norm.norms import create_norm_layer
+from models.tools.norms import create_norm_layer
 # follows the architecture described here: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8575492
 
 

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from models.norm.norms import create_norm_layer
+from models.tools.norms import create_norm_layer
 
 
 class DecoderBlock(nn.Module):
