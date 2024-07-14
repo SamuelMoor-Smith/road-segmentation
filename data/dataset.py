@@ -33,8 +33,8 @@ class ImageDataset(torch.utils.data.Dataset):
                 images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
                 masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
 
-                images_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'images', 'deepglobe_filtered'))
-                masks_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'deepglobe_filtered'))
+                images_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'images', 'deepglobe_small'))
+                masks_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'deepglobe_small'))
 
                 images = np.concatenate([images, images_epfl, images_deepglobe], 0)
                 masks = np.concatenate([masks, masks_epfl, masks_deepglobe], 0)
