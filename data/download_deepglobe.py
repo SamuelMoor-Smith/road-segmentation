@@ -46,23 +46,23 @@ mask_files = [f for f in all_files if 'mask' in f]
 
 # The images are of size 1024x1024, so we get 9 patches of size 400x400 from each image
 
-i = 0
-"""for mask, img in tqdm(zip(mask_files, img_files), total=len(img_files)):
+for mask_file, img_file in tqdm(zip(mask_files, img_files), total=len(img_files)):
     locations = [(0, 0), (0, 312), (0, 624), (312, 0), (312, 312), (312, 624), (624, 0), (624, 312), (624, 624)]
-    img_path = os.path.join(INIT_DIR, img)
-    mask_path = os.path.join(INIT_DIR, mask)
+    img_path = os.path.join(INIT_DIR, img_file)
+    mask_path = os.path.join(INIT_DIR, mask_file)
 
     img = cv2.imread(img_path)
     mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
+    i = 0
     for (x, y) in locations:
         img_patch = img[x:x+400, y:y+400]
         mask_patch = mask[x:x+400, y:y+400]
 
-        cv2.imwrite(os.path.join(IMG_DIR, f'deeplglobe_img_{i}.png'), img_patch)
-        cv2.imwrite(os.path.join(MASK_DIR, f'deepglobe_mask_{i}.png'), mask_patch)
+        cv2.imwrite(os.path.join(IMG_DIR, f'dg_{img_file[:-4]}_{i}.png'), img_patch)
+        cv2.imwrite(os.path.join(MASK_DIR, f'dg_{mask_file[:-4]}_{i}.png'), mask_patch)
         i += 1
-"""
+
 
 print(f"Total images and masks extracted: {len(os.listdir(IMG_DIR))}")
 
@@ -72,19 +72,19 @@ sliced_img_files = list(sorted(os.listdir(IMG_DIR)))
 sliced_mask_files = list(sorted(os.listdir(MASK_DIR)))
 
 i = 0
-for img, mask in tqdm(zip(sliced_img_files, sliced_mask_files), total=len(sliced_img_files)):
-    img_path = os.path.join(IMG_DIR, img)
-    mask_path = os.path.join(MASK_DIR, mask)
+for img_file, mask_file in tqdm(zip(sliced_img_files, sliced_mask_files), total=len(sliced_img_files)):
+    img_path = os.path.join(IMG_DIR, img_file)
+    mask_path = os.path.join(MASK_DIR, mask_file)
 
     img = cv2.imread(img_path)
     mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
     if np.mean(mask) > 10:
-        shutil.move(img_path, os.path.join(FILTERED_IMG_DIR, f'deeplglobe_img_{i}.png'))
-        shutil.move(mask_path, os.path.join(FILTERED_MASK_DIR, f'deepglobe_mask_{i}.png'))
+        shutil.move(img_path, os.path.join(FILTERED_IMG_DIR, img_file))
+        shutil.move(mask_path, os.path.join(FILTERED_MASK_DIR, mask_file))
     else:
-        shutil.move(img_path, os.path.join(REJECTED_IMG_DIR, f'deeplglobe_img_{i}.png'))
-        shutil.move(mask_path, os.path.join(REJECTED_MASK_DIR, f'deepglobe_mask_{i}.png'))
+        shutil.move(img_path, os.path.join(REJECTED_IMG_DIR, img_file))
+        shutil.move(mask_path, os.path.join(REJECTED_MASK_DIR, mask_file))
     i += 1
 
 
