@@ -1,4 +1,4 @@
-# import albumentations as A
+# # import albumentations as A
 
 
 # def affine():
@@ -17,11 +17,10 @@ def apply_transforms(image, mask, size=(384, 384), augment_probability=0.5):
 
     # Apply random affine transformations
     if random.random() < augment_probability:
-        angle = random.uniform(-10, 10)  # degrees
+        angle = random.uniform(-90, 90)  # degrees
         translate = [random.uniform(-image.size(2) * 0.2, image.size(2) * 0.2), random.uniform(-image.size(1) * 0.2, image.size(1) * 0.2)]
-        scale = random.uniform(0.9, 1.1)
+        scale = random.uniform(0.5, 1.5)
         shear = random.uniform(-10, 10)
-
         image = TF.affine(image, angle=angle, translate=translate, scale=scale, shear=shear)
         mask = TF.affine(mask, angle=angle, translate=translate, scale=scale, shear=shear)
 
