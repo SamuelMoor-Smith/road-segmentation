@@ -66,6 +66,7 @@ class ImageDataset(torch.utils.data.Dataset):
         #     x_augmented = x_augmented.transpose(2, 0, 1) # Change back to CxHxW
         #     y_augmented = y_augmented.transpose(2, 0, 1)
         #     return x_augmented, y_augmented
+        print(x.size, y.size)
         if self.is_train:
           # print(x.shape, y.shape)
           x, y = augment.apply_transforms(
@@ -77,9 +78,7 @@ class ImageDataset(torch.utils.data.Dataset):
         return x, y
 
     def __getitem__(self, item):
-        x, y = self.x[item], self.y[[item]]
-        x, y = self._preprocess(x, y)
-        return _preprocess(np_to_tensor(x, self.device), np_to_tensor(y, self.device))
+        return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
 
     def __len__(self):
         return self.n_samples
