@@ -79,7 +79,7 @@ class ImageDataset(torch.utils.data.Dataset):
     def __getitem__(self, item):
         x, y = self.x[item], self.y[[item]]
         x, y = self._preprocess(x, y)
-        return np_to_tensor(x, self.device), np_to_tensor(y, self.device)
+        return _preprocess(np_to_tensor(x, self.device), np_to_tensor(y, self.device))
 
     def __len__(self):
         return self.n_samples
