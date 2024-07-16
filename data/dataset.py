@@ -55,18 +55,25 @@ class ImageDataset(torch.utils.data.Dataset):
         self.n_samples = len(self.x)
 
     def _preprocess(self, x, y):
+        # if self.is_train:
+        #     augmentor = augment.affine()  # Call the affine function directly
+        #     x = x.transpose(1, 2, 0) # Change from CxHxW to HxWxC for Albumentations
+        #     y = y.transpose(1, 2, 0)
+        #     augmented = augmentor(image=x, mask=y)
+        #     x_augmented = augmented['image']
+        #     y_augmented = augmented['mask']
+
+        #     x_augmented = x_augmented.transpose(2, 0, 1) # Change back to CxHxW
+        #     y_augmented = y_augmented.transpose(2, 0, 1)
+        #     return x_augmented, y_augmented
         if self.is_train:
-            augmentor = augment.affine()  # Call the affine function directly
-            x = x.transpose(1, 2, 0) # Change from CxHxW to HxWxC for Albumentations
-            y = y.transpose(1, 2, 0)
-            augmented = augmentor(image=x, mask=y)
-            x_augmented = augmented['image']
-            y_augmented = augmented['mask']
-
-            x_augmented = x_augmented.transpose(2, 0, 1) # Change back to CxHxW
-            y_augmented = y_augmented.transpose(2, 0, 1)
-            return x_augmented, y_augmented
-
+          # print(x.shape, y.shape)
+          x, y = augment.apply_transforms(
+              x,
+              y
+          )
+          print("here")
+            
         return x, y
 
     def __getitem__(self, item):
