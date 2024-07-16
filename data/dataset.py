@@ -69,10 +69,7 @@ class ImageDataset(torch.utils.data.Dataset):
         
         if self.is_train:
           # print(x.shape, y.shape)
-          x, y = augment.apply_transforms(
-              x,
-              y
-          )
+          x, y = augment.apply_transforms(x, y)
             
         return x, y
 
