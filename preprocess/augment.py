@@ -1,20 +1,18 @@
-# # import albumentations as A
-
-
-# def affine():
-#     return A.Compose([
-#         A.HorizontalFlip(p=0.5),
-#         A.VerticalFlip(p=0.5),
-#         A.RandomRotate90(p=0.5),
-#         A.Transpose(p=0.5),
-#     ], p=0.75)
-
-import torchvision.transforms as transforms
+import albumentations as A
 import torchvision.transforms.functional as TF
 import random
 
-def apply_transforms(image, mask, size=(384, 384), augment_probability=0.5):
 
+def affine():
+    return A.Compose([
+     A.HorizontalFlip(p=0.5),
+     A.VerticalFlip(p=0.5),
+     A.RandomRotate90(p=0.5),
+     A.Transpose(p=0.5),
+    ], p=0.75)
+
+
+def apply_transforms(image, mask, size=(384, 384), augment_probability=0.5):
     # Apply random affine transformations
     if random.random() < augment_probability:
         angle = random.uniform(-90, 90)  # degrees
