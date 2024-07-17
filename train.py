@@ -29,6 +29,10 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         for (x, y) in pbar:
             optimizer.zero_grad()  # zero out gradients
             y_hat = model(x)  # forward pass
+
+            # Clamp predicted masks to the range [0, 1] for BCELoss
+            masks_pred = torch.clamp(y_hat, 0, 1) 
+                                 
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
             optimizer.step()  # optimize weights
