@@ -31,7 +31,7 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
             y_hat = model(x)  # forward pass
 
             # Clamp predicted masks to the range [0, 1] for BCELoss
-            masks_pred = torch.clamp(y_hat, 0, 1) 
+            y_hat = torch.clamp(y_hat, 0, 1) 
                                  
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
