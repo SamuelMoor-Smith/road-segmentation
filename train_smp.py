@@ -99,31 +99,7 @@ def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs:
         valid_logs = valid_epoch.run(valid_loader, i)
         scheduler.step(valid_logs["iou_score"])
 
-    test_dataset = TestDataset(
-        data_dir=data_dir,
-        device=device,
-        transforms='minimal',
-        preprocess=preprocessing_fn,
-        resize=416)
-
-    test_loader = DataLoader(test_dataset,
-                             batch_size=4,
-                             shuffle=False,
-                             num_workers=0,
-                             pin_memory=True,
-                             worker_init_fn=42,
-                             )
-
-    model.eval()
-
-    test_pred = []
-    with torch.no_grad():
-        for images, orig_images in test_loader:
-            images = images.to(device)
-            pred = model(images)
-            test_pred.append(pred.detach().cpu().numpy())
-
-    return test_pred
+    return model
 
 
 if __name__ == "__main__":
