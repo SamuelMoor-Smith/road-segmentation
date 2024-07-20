@@ -96,6 +96,24 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
             A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
             A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
+    elif augmentation == 'simplified-satellite-augmentation':
+        return A.Compose([
+            A.OneOf([
+                A.RandomRotate90(p=1),
+                A.HorizontalFlip(p=1),
+                A.VerticalFlip(p=1)
+            ], p=0.75),
+            A.OneOf([
+                A.RandomResizedCrop(img_size, img_size, p=1, scale=(0.8, 1.0), ratio=(0.9, 1.1)),
+                A.GridDistortion(p=1, distort_limit=0.2)
+            ], p=0.75),
+            A.OneOf([
+                A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=1),
+                A.ColorJitter(p=1)
+            ], p=0.75),
+            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
+            A.Resize(height=img_size, width=img_size, p=1.0)
+        ], p=1)
 
 
 def to_tensor():
