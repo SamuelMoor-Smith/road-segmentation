@@ -26,7 +26,7 @@ def smp_get_preprocessing(preprocessing_fn):
 def augment(img_size: int = 384, augmentation: str = 'standard'):
     standard = A.Compose([
         A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
-        A.Resize(height=img_size, width=img_size)])
+        A.Resize(height=img_size, width=img_size, p=1.0)])
     if augmentation == 'validation':
         return standard
     elif augmentation == 'minimal':
@@ -63,7 +63,8 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
                 A.RandomGamma(p=1, gamma_limit=(80, 120)),
                 A.ColorJitter(p=1)
             ], p=0.75),
-            standard
+            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
+            A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
     elif augmentation == 'advanced-satellite-augmentation-two':
         A.Compose([
@@ -92,7 +93,8 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
                 A.RandomGamma(p=1, gamma_limit=(80, 120)),
                 A.ColorJitter(p=1, brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
             ], p=0.75),
-            standard
+            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
+            A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
 
 
