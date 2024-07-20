@@ -72,7 +72,8 @@ class Epoch:
                     iterator.set_postfix_str(s)
 
                 if self.stage_name == 'valid' and epoch_num % 10 == 0 and it == 0:
-                    show_val_samples(orig_x.numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
+                    orig_x = orig_x.permute(0, 3, 1, 2)
+                    show_val_samples(orig_x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
 
 
