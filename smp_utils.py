@@ -5,6 +5,7 @@ import torch
 from segmentation_models_pytorch.utils.meter import AverageValueMeter
 from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm as tqdm
+from utils import show_val_samples
 
 
 class Epoch:
@@ -21,8 +22,6 @@ class Epoch:
     def _to_device(self):
         self.model.to(self.device)
         self.loss.to(self.device)
-        # for metric in self.metrics:
-        #     metric.to(self.device)
 
     def _format_logs(self, logs):
         str_logs = ["{} - {:.4}".format(k, v) for k, v in logs.items()]
@@ -35,7 +34,7 @@ class Epoch:
     def on_epoch_start(self):
         pass
 
-    def run(self, dataloader):
+    def run(self, dataloader, epoch_num):
 
         self.on_epoch_start()
 
@@ -46,7 +45,7 @@ class Epoch:
                 dataloader,
                 desc=self.stage_name,
                 file=sys.stdout,
-                disable=not (self.verbose),
+                disable=not self.verbose,
         ) as iterator:
             for x, y in iterator:
                 x, y = x.to(self.device), y.to(self.device)
@@ -71,6 +70,9 @@ class Epoch:
                 if self.verbose:
                     s = self._format_logs(logs)
                     iterator.set_postfix_str(s)
+
+                if self.stage_name == 'valid' and epoch_num % 10 == 0:
+                    show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
 
 

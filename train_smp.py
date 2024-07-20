@@ -95,8 +95,8 @@ def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs:
 
     for i in range(n_epochs):
         print(f"Epoch {i+1}/{n_epochs}")
-        train_logs = train_epoch.run(train_loader)
-        valid_logs = valid_epoch.run(valid_loader)
+        train_logs = train_epoch.run(train_loader, i)
+        valid_logs = valid_epoch.run(valid_loader, i)
         scheduler.step(valid_logs["iou_score"])
 
     return model
