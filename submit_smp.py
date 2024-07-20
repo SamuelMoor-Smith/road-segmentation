@@ -20,17 +20,17 @@ def patch_to_label(patch):
         return 0
 
 
-def mask_to_submission_strings(image_filename, im_arr, mask_dir=None,full_mask_dir=None):
+def mask_to_submission_strings(image_filename, im_arr, mask_dir=None, full_mask_dir=None):
     img_number = int(re.search(r"\d+", image_filename).group(0))
-    im_arr = (im_arr.reshape(400,400)*255.0).astype(np.uint8)
+    im_arr = (im_arr.reshape(400, 400) * 255.0).astype(np.uint8)
     patch_size = 16
     mask = np.zeros_like(im_arr)
     for j in range(0, im_arr.shape[1], patch_size):
         for i in range(0, im_arr.shape[0], patch_size):
             patch = im_arr[i:i + patch_size, j:j + patch_size]
             label = patch_to_label(patch)
-            mask[i:i+patch_size, j:j+patch_size] = int(label*255)
-            yield("{:03d}_{}_{},{}".format(img_number, j, i, label))
+            mask[i:i + patch_size, j:j + patch_size] = int(label * 255)
+            yield ("{:03d}_{}_{},{}".format(img_number, j, i, label))
 
     if mask_dir:
         save_mask_as_img(mask, os.path.join(mask_dir, "mask_" + image_filename))
@@ -44,15 +44,21 @@ def save_mask_as_img(img_arr, mask_filename):
     img.save(mask_filename)
 
 
-def masks_to_submission(submission_filename, image_filenames,predictions,full_mask_dir=None, mask_dir=None):
+def masks_to_submission(submission_filename, image_filenames, predictions, full_mask_dir=None, mask_dir=None):
     """Converts images into a submission file"""
     with open(submission_filename, 'w') as f:
         f.write('id,prediction\n')
-        for fn,pred in zip(image_filenames,predictions):
-            f.writelines('{}\n'.format(s) for s in mask_to_submission_strings(image_filename=fn,im_arr=pred, mask_dir=mask_dir,full_mask_dir=full_mask_dir))
+        for fn, pred in zip(image_filenames, predictions):
+            f.writelines('{}\n'.format(s) for s in
+                         mask_to_submission_strings(image_filename=fn, im_arr=pred, mask_dir=mask_dir,
+                                                    full_mask_dir=full_mask_dir))
 
 
-def main(model, device, backbone, test_dir):
+def make_submission(model, config, test_dir):
+    backbone = config['backbone']
+    device = config['device']
+    resize = config['resize']
+    batch_size = config['batch_size']
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, 'imagenet')
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
 
@@ -63,10 +69,10 @@ def main(model, device, backbone, test_dir):
         data_dir=test_dir,
         transforms='validation',
         preprocess=preprocessing_fn,
-        resize=416)
+        resize=resize)
 
     test_loader = DataLoader(test_dataset,
-                             batch_size=4,
+                             batch_size=batch_size,
                              shuffle=False,
                              num_workers=0,
                              pin_memory=True,
@@ -80,8 +86,10 @@ def main(model, device, backbone, test_dir):
         for images in test_loader:
             images = images.to(device)
             preds = model.predict(images)
-            predicted_masks = preds.permute(0, 2, 3, 1).cpu().numpy() #permutes similar to reshape, such that [batch_size,height,width,channels]
-            images = images.permute(0, 2, 3, 1).cpu().numpy() #permutes similar to reshape, such that [batch_size,height,width,channels]
+            predicted_masks = preds.permute(0, 2, 3,
+                                            1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
+            images = images.permute(0, 2, 3,
+                                    1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
 
             # Unet needed 416,416 we need back 400,400
             crop = A.Compose([
@@ -103,21 +111,34 @@ def main(model, device, backbone, test_dir):
 
 
 if __name__ == "__main__":
+    # For debugging purposes
+    device = 'cpu'
+    # Load the state dictionary into the model
+    smp_config = {
+        'decoder_channels': [256, 128, 64, 32, 16],
+        'backbone': 'efficientnet-b5',
+        'epochs': 150,
+        'use_epfl': False,
+        'use_deepglobe': False,
+        'augmentation_factor': 1,
+        'transformation': 'minimal',
+        'resize': 416,
+        'validation_size': 0.15,
+        'seed': 42,
+        'batch_size': 4,
+        'lr': 0.0005,
+        'device': device
+    }
 
     model = smp.UnetPlusPlus(
-            encoder_name='efficientnet-b5',
-            encoder_weights='imagenet',
-            decoder_channels=[256, 128, 64, 32, 16],
-            decoder_attention_type=None,
-            classes=1,
-            activation='sigmoid',
-        )
-
-    device = 'cpu'
+        encoder_name=smp_config['backbone'],
+        encoder_weights='imagenet',
+        decoder_channels=smp_config['decoder_channels'],
+        decoder_attention_type=None,
+        classes=1,
+        activation='sigmoid',
+    )
     state_dict = torch.load('model_checkpoints/Unetpp.pt', map_location=torch.device('cpu'))
-
-    # Load the state dictionary into the model
     model.load_state_dict(state_dict)
-    backbone = 'efficientnet-b5'
-    test_dir = 'data'
-    main(model, device, backbone, test_dir)
+
+    make_submission(model, smp_config, 'data')
