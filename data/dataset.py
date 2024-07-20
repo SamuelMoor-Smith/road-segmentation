@@ -112,7 +112,7 @@ class ImageDataset(torch.utils.data.Dataset):
 class TestDataset(torch.utils.data.Dataset):
     def __init__(self, data_dir:str, transforms=None, preprocess=None, seed:int = 42, resize:int = 384):
         self.data_dir = os.path.join(data_dir, 'test', 'images')
-        self.transforms = transforms
+        self.transforms = augment.augment(resize, transforms) if transforms is not None else None
         self.preprocess = preprocess
         self.seed = seed
         self.resize = resize
@@ -129,7 +129,7 @@ class TestDataset(torch.utils.data.Dataset):
         orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
         image = orig_image
 
-        if self.transform is not None:
+        if self.transforms is not None:
             transformed = self.transforms(image=image)
             image = transformed["image"]
         # apply preprocessing
@@ -141,10 +141,5 @@ class TestDataset(torch.utils.data.Dataset):
             image = tensors["image"]
         image = image.to(torch.float32)
 
-        return image, orig_image
+        return image
 
-
-def load_all_from_path(path):
-    # loads all HxW .pngs contained in path as a 4D np.array of shape (n_images, H, W, 3)
-    # images are loaded as floats with values in the interval [0., 1.]
-    return np.stack([np.array(Image.open(f)) for f in sorted(glob(path + '/*.png'))]).astype(np.float32) / 255.
