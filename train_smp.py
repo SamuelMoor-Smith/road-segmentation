@@ -131,6 +131,6 @@ if __name__ == "__main__":
     backbone = 'efficientnet-b5'
     device = 'cpu'
     epochs = 5
-    train_smp(decoder_channels, backbone, device, epochs)
+    train_smp(decoder_channels, backbone, device, epochs, data_dir="/Users/sebastian/University/Master/second_term/cil/road-segmentation/data")
 
 

@@ -47,7 +47,7 @@ class Epoch:
                 file=sys.stdout,
                 disable=not self.verbose,
         ) as iterator:
-            for x, y, orig_x, it in enumerate(iterator):
+            for it, (x, y, orig_x) in enumerate(iterator):
                 x, y = x.to(self.device), y.to(self.device)
                 loss, y_pred = self.batch_update(x, y)
                 # update loss logs
