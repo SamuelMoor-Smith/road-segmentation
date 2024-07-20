@@ -23,6 +23,7 @@ def train_smp(config, data_dir: str):
     batch_size = config['batch_size']
     lr = config['lr']
     device = config['device']
+    model_save_path = config['model_save_path']
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
@@ -107,11 +108,16 @@ def train_smp(config, data_dir: str):
         verbose=True,
     )
 
+    best_iou = 0
     for i in range(epochs):
         print(f"Epoch {i+1}/{epochs}")
         train_logs = train_epoch.run(train_loader, i)
         valid_logs = valid_epoch.run(valid_loader, i)
         scheduler.step(valid_logs["iou_score"])
+
+        if valid_logs["iou_score"] > best_iou:
+            best_iou = valid_logs["iou_score"]
+            torch.save(model.state_dict(), model_save_path)
 
     return model
 
