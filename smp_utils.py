@@ -47,7 +47,7 @@ class Epoch:
                 file=sys.stdout,
                 disable=not self.verbose,
         ) as iterator:
-            for x, y in iterator:
+            for x, y, orig_x, it in enumerate(iterator):
                 x, y = x.to(self.device), y.to(self.device)
                 loss, y_pred = self.batch_update(x, y)
                 # update loss logs
@@ -71,8 +71,8 @@ class Epoch:
                     s = self._format_logs(logs)
                     iterator.set_postfix_str(s)
 
-                if self.stage_name == 'valid' and epoch_num % 10 == 0:
-                    show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
+                if self.stage_name == 'valid' and epoch_num % 10 == 0 and it == 0:
+                    show_val_samples(orig_x.numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
 
 

@@ -7,6 +7,7 @@ from glob import glob
 from preprocess import augment
 import random
 
+
 def preprocess_mask(mask: torch.FloatTensor) -> torch.FloatTensor:
     "This function takes a mask and converts it to a uint8 and float32,"
     "then sets the bits that are 1.0 and 0.0, respectively."
@@ -15,6 +16,7 @@ def preprocess_mask(mask: torch.FloatTensor) -> torch.FloatTensor:
     mask[mask == 255.0] = 1.0
     mask[mask == 0.0] = 0.0
     return mask
+
 
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
@@ -71,8 +73,10 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, item: int):
         img_path = self.filenames[item]
-        image = cv2.imread(img_path)
+        orig_image = cv2.imread(img_path)
+        orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
 
+        image = orig_image # maybe need to kick last channel
         mask_path = img_path.replace('images', 'groundtruth')
 
         if 'dg' in mask_path:
@@ -97,7 +101,7 @@ class ImageDataset(torch.utils.data.Dataset):
         mask = mask.type(torch.float32)
         if len(mask.size()) == 2:
             mask = torch.unsqueeze(mask, 0)
-        return image, mask
+        return image, mask, orig_image
 
     #return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
 
@@ -105,6 +109,39 @@ class ImageDataset(torch.utils.data.Dataset):
         return len(self.filenames)
 
 
+class TestDataset(torch.utils.data.Dataset):
+    def __init__(self, data_dir:str, transforms=None, preprocess=None, seed:int = 42, resize:int = 384):
+        self.data_dir = data_dir
+        self.transforms = transforms
+        self.preprocess = preprocess
+        self.seed = seed
+        self.resize = resize
+
+        filenames = list(sorted(os.listdir(self.data_dir)))
+        self.filenames = [os.path.join(self.data_dir, fname) for fname in filenames if fname.endswith('.png')]
+
+    def __len__(self):
+        return len(self.filenames)
+
+    def __getitem__(self, item: int):
+        img_path = self.filenames[item]
+        orig_image = cv2.imread(img_path)
+        orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
+        image = orig_image
+
+        if self.transform is not None:
+            transformed = self.transforms(image=image)
+            image = transformed["image"]
+        # apply preprocessing
+        if self.preprocess is not None:
+            sample = self.preprocess(image=image)
+            image = sample['image']
+        else:
+            tensors = augment.to_tensor()(image=image)
+            image = tensors["image"]
+        image = image.to(torch.float32)
+
+        return image, orig_image
 
 
 def load_all_from_path(path):
