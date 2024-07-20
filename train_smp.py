@@ -2,15 +2,14 @@ import segmentation_models_pytorch as smp
 from preprocess.augment import smp_get_preprocessing
 import torch
 from torch.utils.data import DataLoader
-from preprocess.augment import augment
 from data.dataset import ImageDataset
 from smp_utils import TrainEpoch, ValidEpoch
 
 ENCODER_WEIGHTS = 'imagenet'
-DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
+#DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
 
 
-def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs: int):
+def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs: int, data_dir: str):
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
     encoder_weights = ENCODER_WEIGHTS
@@ -37,7 +36,7 @@ def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs:
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True) # can play around with patience, factor, etc.
 
     train_dataset = ImageDataset(
-        data_dir=DATA_DIR,
+        data_dir=data_dir,
         is_train=True,
         device=device,
         use_epfl=False,
@@ -50,7 +49,7 @@ def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs:
         resize=416)
 
     valid_dataset = ImageDataset(
-        data_dir=DATA_DIR,
+        data_dir=data_dir,
         is_train=False,
         device=device,
         use_epfl=False,
