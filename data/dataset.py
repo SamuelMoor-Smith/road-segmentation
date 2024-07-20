@@ -43,7 +43,7 @@ class ImageDataset(torch.utils.data.Dataset):
             self.filenames = eth_files
 
     def _get_data(self):
-        image_dir = os.path.join(self.data_dir, 'images', 'eth')
+        image_dir = os.path.join(self.data_dir, 'training', 'images', 'eth')
         filenames = [os.path.join(image_dir, fname) for fname in sorted(os.listdir(image_dir))]
 
         filenames = [f for f in filenames if f.endswith('.png')]
@@ -62,10 +62,10 @@ class ImageDataset(torch.utils.data.Dataset):
     def _get_external_data(self):
         filenames = []
         if self.use_epfl:
-            epfl_dir = os.path.join(self.data_dir, 'images', 'epfl')
+            epfl_dir = os.path.join(self.data_dir, 'training', 'images', 'epfl')
             filenames += [os.path.join(epfl_dir, fname) for fname in sorted(os.listdir(epfl_dir))]
         if self.use_deepglobe:
-            dg_dir = os.path.join(self.data_dir, 'images', 'deepglobe')
+            dg_dir = os.path.join(self.data_dir, 'training', 'images', 'deepglobe')
             filenames += [os.path.join(dg_dir, fname) for fname in sorted(os.listdir(dg_dir))]
 
         filenames = [f for f in filenames if f.endswith('.png')]
@@ -111,7 +111,7 @@ class ImageDataset(torch.utils.data.Dataset):
 
 class TestDataset(torch.utils.data.Dataset):
     def __init__(self, data_dir:str, transforms=None, preprocess=None, seed:int = 42, resize:int = 384):
-        self.data_dir = data_dir
+        self.data_dir = os.path.join(data_dir, 'test', 'images')
         self.transforms = transforms
         self.preprocess = preprocess
         self.seed = seed
