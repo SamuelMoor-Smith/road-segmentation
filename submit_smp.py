@@ -61,7 +61,7 @@ def main(model, device, backbone, test_dir):
 
     test_dataset = TestDataset(
         data_dir=test_dir,
-        transforms='minimal',
+        transforms='validation',
         preprocess=preprocessing_fn,
         resize=416)
 

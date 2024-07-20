@@ -56,7 +56,7 @@ def train_smp(decoder_channels: list[int], backbone: str, device: str, n_epochs:
         use_deepglobe=False,
         validation_size=0.15,
         seed=42,
-        transforms='minimal',
+        transforms='validation',
         preprocess=preprocessing_fn,
         augmentation_factor=1,
         resize=416)

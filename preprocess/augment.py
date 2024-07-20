@@ -27,7 +27,7 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
     standard = A.Compose([
         A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
         A.Resize(height=img_size, width=img_size)])
-    if augmentation == 'standard':
+    if augmentation == 'validation':
         return standard
     elif augmentation == 'minimal':
         return A.Compose([
