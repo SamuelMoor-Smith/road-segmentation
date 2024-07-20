@@ -38,7 +38,7 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
             A.Transpose(p=0.5),
         ], p=1)
     elif augmentation == 'advanced-satellite-augmentation':
-        A.Compose([
+        return A.Compose([
             A.OneOf([
                 A.RandomRotate90(p=1),
                 A.HorizontalFlip(p=1),
@@ -67,7 +67,7 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
             A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
     elif augmentation == 'advanced-satellite-augmentation-two':
-        A.Compose([
+        return A.Compose([
             A.OneOf([
                 A.RandomRotate90(p=1),
                 A.HorizontalFlip(p=1),
