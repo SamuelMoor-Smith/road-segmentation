@@ -65,7 +65,7 @@ class ImageDataset(torch.utils.data.Dataset):
             epfl_dir = os.path.join(self.data_dir, 'training', 'images', 'epfl')
             filenames += [os.path.join(epfl_dir, fname) for fname in sorted(os.listdir(epfl_dir))]
         if self.use_deepglobe:
-            dg_dir = os.path.join(self.data_dir, 'training', 'images', 'deepglobe')
+            dg_dir = os.path.join(self.data_dir, 'training', 'images', 'deepglobe_filtered')
             filenames += [os.path.join(dg_dir, fname) for fname in sorted(os.listdir(dg_dir))]
 
         filenames = [f for f in filenames if f.endswith('.png')]

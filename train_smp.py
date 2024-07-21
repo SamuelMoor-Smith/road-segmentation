@@ -198,4 +198,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = get_config(args.config)
-    train_smp(config, data_dir="/Users/sebastian/University/Master/second_term/cil/road-segmentation/data")
+    train_smp(config, data_dir="/home/shoenig/road-segmentation/data")
