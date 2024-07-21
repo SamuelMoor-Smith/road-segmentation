@@ -91,7 +91,7 @@ def make_submission(model, config, test_dir):
             images = images.permute(0, 2, 3,
                                     1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
 
-            # Unet needed 416,416 we need back 400,400
+
             crop = A.Compose([
                 A.CenterCrop(height=400, width=400),
             ])

@@ -4,6 +4,8 @@ import torch
 from torch.utils.data import DataLoader
 from data.dataset import ImageDataset
 from smp_utils import TrainEpoch, ValidEpoch
+import argparse
+from config_loader import get_config
 
 ENCODER_WEIGHTS = 'imagenet'
 #DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
@@ -189,24 +191,11 @@ def train_smp(config, data_dir: str):
 
 
 if __name__ == "__main__":
-    smp_config = {
-        'decoder_channels': [256, 128, 64, 32, 16],
-        'backbone': 'efficientnet-b5',
-        'epochs': 150,
-        'use_epfl': True,
-        'use_deepglobe': False,
-        'augmentation_factor': 2,
-        'transformation': 'advanced-satellite-augmentation',
-        'resize': 416,
-        'validation_size': 0.15,
-        'seed': 42,
-        'batch_size': 4,
-        'lr': 0.0005,
-        'device': 'cpu',
-        'metric': 'iou_score',
-        'model_save_path': '/content/gdrive/My Drive/models/UNetpp_EPFL_Adv_Aug'
-    }
-    train_smp(smp_config, data_dir="/Users/sebastian/University/Master/second_term/cil/road-segmentation/data")
+    parser = argparse.ArgumentParser()
 
+    parser.add_argument("--config", default="unetpp_b5")
 
+    args = parser.parse_args()
 
+    config = get_config(args.config)
+    train_smp(config, data_dir="/Users/sebastian/University/Master/second_term/cil/road-segmentation/data")

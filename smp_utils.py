@@ -47,6 +47,7 @@ class Epoch:
                 file=sys.stdout,
                 disable=not self.verbose,
         ) as iterator:
+
             for it, (x, y, orig_x) in enumerate(iterator):
                 x, y = x.to(self.device), y.to(self.device)
                 loss, y_pred = self.batch_update(x, y)
@@ -73,7 +74,7 @@ class Epoch:
 
                 offset = (epoch_num % len(iterator))
                 adjusted_it = (it + offset) % len(iterator) # for more validation display variety
-                if self.stage_name == 'valid' and epoch_num % 10 == 0 and adjusted_it == 0:
+                if 'show_val' in config and config['show_val'] and self.stage_name == 'valid' and adjusted_it == 0:
                     orig_x = orig_x.permute(0, 3, 1, 2) # confusing to look at -
                     show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
