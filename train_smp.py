@@ -54,21 +54,21 @@ def train_smp(config, data_dir: str):
             decoder_channels=decoder_channels,
             decoder_attention_type=None,
             classes=1,
-            activation=activation if activation is not None else None,
+            activation=activation if activation != 'None' else None,
         )
     elif model_name == 'PSPNet':
         model = smp.PSPNet(
             encoder_name=backbone,
             encoder_weights=encoder_weights,
             classes=1,
-            activation=activation if activation is not None else None,
+            activation=activation if activation != 'None' else None,
         )
     elif model_name == 'DeepLabV3Plus':
         model = smp.DeepLabV3Plus(
             encoder_name=backbone,
             encoder_weights=encoder_weights,
             classes=1,
-            activation=activation if activation is not None else None,
+            activation=activation if activation != 'None' else None,
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
