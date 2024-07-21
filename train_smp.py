@@ -2,12 +2,25 @@ import segmentation_models_pytorch as smp
 from preprocess.augment import smp_get_preprocessing
 import torch
 from torch.utils.data import DataLoader
-from data.dataset import ImageDataset, TestDataset
+from data.dataset import ImageDataset
 from smp_utils import TrainEpoch, ValidEpoch
 
 ENCODER_WEIGHTS = 'imagenet'
 #DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
 
+def get_loss_function(loss_function: str):
+    if loss_function == 'SoftBCEWithLogitsLoss':
+        return smp.losses.SoftBCEWithLogitsLoss()
+    elif loss_function == 'DiceLoss':
+        return smp.losses.DiceLoss(mode='binary', from_logits=False)
+    elif loss_function == 'FocalLoss':
+        return smp.losses.FocalLoss(mode='binary')
+    elif loss_function == 'JaccardLoss':
+        return smp.losses.JaccardLoss(mode='binary', from_logits=False)
+    elif loss_function == 'TverskyLoss':
+        return smp.losses.TverskyLoss(mode='binary', from_logits=False)
+    else:
+        raise ValueError(f"Loss function {loss_function} not recognized")
 
 def train_smp(config, data_dir: str):
     decoder_channels = config['decoder_channels']
@@ -24,19 +37,41 @@ def train_smp(config, data_dir: str):
     lr = config['lr']
     device = config['device']
     model_save_path = config['model_save_path']
+    model_name = config['model_name']
+    #loss_function = config['loss_function']
+    activation = config['activation']
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
     encoder_weights = ENCODER_WEIGHTS
 
-    model = smp.UnetPlusPlus(
-        encoder_name=backbone,
-        encoder_weights=encoder_weights,
-        decoder_channels=decoder_channels,
-        decoder_attention_type=None,
-        classes=1,
-        activation='sigmoid',
-    )
+    # Look into aux_params
+
+    if model_name == 'UnetPlusPlus':
+        model = smp.UnetPlusPlus(
+            encoder_name=backbone,
+            encoder_weights=encoder_weights,
+            decoder_channels=decoder_channels,
+            decoder_attention_type=None,
+            classes=1,
+            activation=activation if activation is not None else None,
+        )
+    elif model_name == 'PSPNet':
+        model = smp.PSPNet(
+            encoder_name=backbone,
+            encoder_weights=encoder_weights,
+            classes=1,
+            activation=activation if activation is not None else None,
+        )
+    elif model_name == 'DeepLabV3Plus':
+        model = smp.DeepLabV3Plus(
+            encoder_name=backbone,
+            encoder_weights=encoder_weights,
+            classes=1,
+            activation=activation if activation is not None else None,
+        )
+    else:
+        raise ValueError(f"Model name {model_name} not recognized")
 
     model.to(device)
     loss = smp.losses.SoftBCEWithLogitsLoss()
@@ -120,6 +155,27 @@ def train_smp(config, data_dir: str):
             torch.save(model.state_dict(), model_save_path)
 
     return model
+
+
+if __name__ == "__main__":
+    smp_config = {
+        'decoder_channels': [256, 128, 64, 32, 16],
+        'backbone': 'efficientnet-b5',
+        'epochs': 150,
+        'use_epfl': True,
+        'use_deepglobe': False,
+        'augmentation_factor': 2,
+        'transformation': 'advanced-satellite-augmentation',
+        'resize': 416,
+        'validation_size': 0.15,
+        'seed': 42,
+        'batch_size': 4,
+        'lr': 0.0005,
+        'device': 'cpu',
+        'metric': 'iou_score',
+        'model_save_path': '/content/gdrive/My Drive/models/UNetpp_EPFL_Adv_Aug'
+    }
+    train_smp(smp_config, data_dir="/Users/sebastian/University/Master/second_term/cil/road-segmentation/data")
 
 
 
