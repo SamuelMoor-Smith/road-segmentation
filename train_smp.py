@@ -8,19 +8,21 @@ from smp_utils import TrainEpoch, ValidEpoch
 ENCODER_WEIGHTS = 'imagenet'
 #DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
 
+
 def get_loss_function(loss_function: str):
     if loss_function == 'SoftBCEWithLogitsLoss':
         return smp.losses.SoftBCEWithLogitsLoss()
     elif loss_function == 'DiceLoss':
-        return smp.losses.DiceLoss(mode='binary', from_logits=False)
+        return smp.losses.DiceLoss(mode='binary')
     elif loss_function == 'FocalLoss':
         return smp.losses.FocalLoss(mode='binary')
     elif loss_function == 'JaccardLoss':
-        return smp.losses.JaccardLoss(mode='binary', from_logits=False)
+        return smp.losses.JaccardLoss(mode='binary')
     elif loss_function == 'TverskyLoss':
-        return smp.losses.TverskyLoss(mode='binary', from_logits=False)
+        return smp.losses.TverskyLoss(mode='binary')
     else:
         raise ValueError(f"Loss function {loss_function} not recognized")
+
 
 def train_smp(config, data_dir: str):
     decoder_channels = config['decoder_channels']
@@ -39,7 +41,6 @@ def train_smp(config, data_dir: str):
     model_save_path = config['model_save_path']
     model_name = config['model_name']
     #loss_function = config['loss_function']
-    activation = config['activation']
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
@@ -54,21 +55,21 @@ def train_smp(config, data_dir: str):
             decoder_channels=decoder_channels,
             decoder_attention_type=None,
             classes=1,
-            activation=activation if activation != 'None' else None,
+            activation=None,
         )
     elif model_name == 'PSPNet':
         model = smp.PSPNet(
             encoder_name=backbone,
             encoder_weights=encoder_weights,
             classes=1,
-            activation=activation if activation != 'None' else None,
+            activation=None,
         )
     elif model_name == 'DeepLabV3Plus':
         model = smp.DeepLabV3Plus(
             encoder_name=backbone,
             encoder_weights=encoder_weights,
             classes=1,
-            activation=activation if activation != 'None' else None,
+            activation=None,
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
