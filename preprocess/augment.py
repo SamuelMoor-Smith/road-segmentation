@@ -114,6 +114,52 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
             A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
             A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
+    elif augmentation == 'high-diversity':
+        return A.Compose([
+            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
+            A.Resize(height=img_size, width=img_size),
+            A.OneOf([
+                        A.RandomRotate90(p = 1),
+                        A.HorizontalFlip(p = 1),
+                        A.VerticalFlip(p = 1),
+                        A.Transpose(p = 1)
+                ], 0.75),
+                A.OneOf([
+                        A.RandomResizedCrop(img_size, img_size,
+                                            p = 1,
+                                            scale = (0.5, 1.2),
+                                            ratio = (0.85, 1.15)
+                                            ),
+                        A.GridDistortion(p = 1, distort_limit = 0.5),
+                        A.ElasticTransform(p = 1, alpha = 120, sigma = 750 * 0.05, alpha_affine = 120 * 0.03),
+                ], 0.75),
+                A.OneOf([
+                        A.RandomShadow(p = 1,
+                                       num_shadows_lower = 1,
+                                       num_shadows_upper = 5,
+                                       shadow_dimension = 3
+                                       ),
+                        A.CoarseDropout(max_holes = 8,
+                                        max_height = 50,
+                                        max_width = 50,
+                                        min_holes = 5,
+                                        min_height = 10,
+                                        min_width = 10,
+                                        fill_value = 0,
+                                        p = 1
+                                        ),
+                ], 0.75),
+
+                A.OneOf([
+
+                        A.RGBShift(r_shift_limit = 25, g_shift_limit = 25, b_shift_limit = 25, p = 1),
+                        A.RandomBrightnessContrast(brightness_limit = 0.3, contrast_limit = 0.3, p = 1),
+                        A.RandomGamma(p = 1, gamma_limit = (50, 500)),
+                        A.ColorJitter(p = 1),
+                ], 0.75)
+        ]
+        )
+
 
 
 def to_tensor():
