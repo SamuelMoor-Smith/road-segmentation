@@ -14,8 +14,6 @@ def get_loss_function(loss_function: str):
         return smp.losses.SoftBCEWithLogitsLoss()
     elif loss_function == 'DiceLoss':
         return smp.losses.DiceLoss(mode='binary')
-    elif loss_function == 'FocalLoss':
-        return smp.losses.FocalLoss(mode='binary')
     elif loss_function == 'JaccardLoss':
         return smp.losses.JaccardLoss(mode='binary')
     elif loss_function == 'TverskyLoss':
@@ -23,6 +21,37 @@ def get_loss_function(loss_function: str):
     else:
         raise ValueError(f"Loss function {loss_function} not recognized")
 
+
+def get_optimizer(optimizer: str, model, lr: float):
+    if optimizer == 'Adam':
+        return torch.optim.Adam([
+            dict(params=model.parameters(), lr=lr),
+        ])
+    elif optimizer == 'AdamW':
+        return torch.optim.AdamW([
+            dict(params=model.parameters(), lr=lr),
+        ])
+    elif optimizer == 'NAdam':
+        return torch.optim.NAdam([
+            dict(params=model.parameters(), lr=lr),
+        ])
+    elif optimizer == 'SGD':
+        return torch.optim.SGD([
+            dict(params=model.parameters(), lr=lr),
+        ])
+    else:
+        raise ValueError(f"Optimizer {optimizer} not recognized")
+
+
+def get_scheduler(scheduler: str, optimizer, verbose: bool):
+    if scheduler == 'ReduceLROnPlateau':
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=verbose)
+    elif scheduler == 'OneCycleLR':
+        return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, verbose=verbose)
+    elif scheduler == 'CosineAnnealingLR':
+        return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, verbose=verbose)
+    elif scheduler == 'CycleLR':
+        return torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.001, max_lr=0.1, verbose=verbose)
 
 def train_smp(config, data_dir: str):
     decoder_channels = config['decoder_channels']
@@ -40,7 +69,6 @@ def train_smp(config, data_dir: str):
     device = config['device']
     model_save_path = config['model_save_path']
     model_name = config['model_name']
-    #loss_function = config['loss_function']
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
@@ -75,14 +103,13 @@ def train_smp(config, data_dir: str):
         raise ValueError(f"Model name {model_name} not recognized")
 
     model.to(device)
-    loss = smp.losses.SoftBCEWithLogitsLoss()
+    loss = get_loss_function(config['loss_function'])
+    optimizer = get_optimizer(config['optimizer'], model, lr)
+
     metrics = ["f1_score",
                "iou_score",
                "accuracy",
                ]
-    optimizer = torch.optim.Adam([
-        dict(params=model.parameters(), lr=lr),
-    ])
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True) # can play around with patience, factor, etc.
 

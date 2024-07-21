@@ -103,7 +103,7 @@ def make_submission(model, config, test_dir):
                 imgs_lst.append(image)
                 preds_lst.append(mask)
 
-    masks_to_submission(submission_filename="submissions/dummy_submission.csv",
+    masks_to_submission(submission_filename="submissions/" + config['model_save_path'].split('/')[-1] + ".csv",
                         full_mask_dir="full_masks/",
                         mask_dir="patched_masks/",
                         image_filenames=test_dataset.filenames,

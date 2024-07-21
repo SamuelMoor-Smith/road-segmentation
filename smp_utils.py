@@ -71,7 +71,9 @@ class Epoch:
                     s = self._format_logs(logs)
                     iterator.set_postfix_str(s)
 
-                if self.stage_name == 'valid' and epoch_num % 10 == 0 and it == 0:
+                offset = (epoch_num % len(iterator))
+                adjusted_it = (it + offset) % len(iterator) # for more validation display variety
+                if self.stage_name == 'valid' and epoch_num % 10 == 0 and adjusted_it == 0:
                     orig_x = orig_x.permute(0, 3, 1, 2) # confusing to look at -
                     show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
