@@ -52,6 +52,9 @@ def get_scheduler(scheduler: str, optimizer, verbose: bool):
         return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, verbose=verbose)
     elif scheduler == 'CycleLR':
         return torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.001, max_lr=0.1, verbose=verbose)
+    else:
+        raise ValueError(f"Scheduler {scheduler} not recognized")
+
 
 def train_smp(config, data_dir: str):
     decoder_channels = config['decoder_channels']
@@ -74,7 +77,7 @@ def train_smp(config, data_dir: str):
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
     encoder_weights = ENCODER_WEIGHTS
 
-    # Look into aux_params
+    # Look into aux_params - maybe also MA NET
 
     if model_name == 'UnetPlusPlus':
         model = smp.UnetPlusPlus(
@@ -174,8 +177,8 @@ def train_smp(config, data_dir: str):
     best_iou = 0
     for i in range(epochs):
         print(f"Epoch {i+1}/{epochs}")
-        train_logs = train_epoch.run(train_loader, i)
-        valid_logs = valid_epoch.run(valid_loader, i)
+        train_logs = train_epoch.run(train_loader, i, config)
+        valid_logs = valid_epoch.run(valid_loader, i, config)
         scheduler.step(valid_logs["iou_score"])
 
         if valid_logs["iou_score"] > best_iou:

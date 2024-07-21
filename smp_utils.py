@@ -34,7 +34,7 @@ class Epoch:
     def on_epoch_start(self):
         pass
 
-    def run(self, dataloader, epoch_num):
+    def run(self, dataloader, epoch_num, config):
 
         self.on_epoch_start()
 
@@ -53,7 +53,7 @@ class Epoch:
                 # update loss logs
                 loss_value = loss.cpu().detach().numpy()
                 loss_meter.add(loss_value)
-                loss_logs = {'SoftBCE': loss_meter.mean}
+                loss_logs = {config['loss_function']: loss_meter.mean}
                 logs.update(loss_logs)
                 tp, fp, fn, tn = smp.metrics.get_stats(output=y_pred.cpu().detach(),
                                                        target=y.long().cpu().detach(),
