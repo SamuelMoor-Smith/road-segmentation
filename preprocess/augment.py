@@ -116,8 +116,6 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
         ], p=1)
     elif augmentation == 'high-diversity':
         return A.Compose([
-            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
-            A.Resize(height=img_size, width=img_size),
             A.OneOf([
                         A.RandomRotate90(p = 1),
                         A.HorizontalFlip(p = 1),
@@ -156,7 +154,9 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
                         A.RandomBrightnessContrast(brightness_limit = 0.3, contrast_limit = 0.3, p = 1),
                         A.RandomGamma(p = 1, gamma_limit = (50, 500)),
                         A.ColorJitter(p = 1),
-                ], 0.75)
+                ], 0.75),
+            A.PadIfNeeded(min_height=img_size, min_width=img_size, p=1.0),
+            A.Resize(height=img_size, width=img_size),
         ]
         )
 

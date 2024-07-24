@@ -54,7 +54,7 @@ def masks_to_submission(submission_filename, image_filenames, predictions, full_
                                                     full_mask_dir=full_mask_dir))
 
 
-def make_submission(model, config, test_dir):
+def make_submission(model, config, test_dir, submission_dir):
     backbone = config['backbone']
     device = config['device']
     resize = config['resize']
@@ -86,7 +86,8 @@ def make_submission(model, config, test_dir):
         for images in test_loader:
             images = images.to(device)
             preds = model.predict(images)
-            predicted_masks = preds.permute(0, 2, 3,
+
+            predicted_masks = torch.sigmoid(preds).permute(0, 2, 3,
                                             1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
             images = images.permute(0, 2, 3,
                                     1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
@@ -103,7 +104,7 @@ def make_submission(model, config, test_dir):
                 imgs_lst.append(image)
                 preds_lst.append(mask)
 
-    masks_to_submission(submission_filename="submissions/" + config['model_save_path'].split('/')[-1] + ".csv",
+    masks_to_submission(submission_filename=submission_dir,
                         full_mask_dir="full_masks/",
                         mask_dir="patched_masks/",
                         image_filenames=test_dataset.filenames,
@@ -131,14 +132,16 @@ if __name__ == "__main__":
     }
 
     model = smp.UnetPlusPlus(
-        encoder_name=smp_config['backbone'],
+        encoder_name='efficientnet-b5',
         encoder_weights='imagenet',
-        decoder_channels=smp_config['decoder_channels'],
+        decoder_channels=[256, 128, 64, 32, 16],
         decoder_attention_type=None,
         classes=1,
-        activation='sigmoid',
+        activation=None,
     )
-    state_dict = torch.load('model_checkpoints/Unetpp.pt', map_location=torch.device('cpu'))
+
+    state_dict = torch.load('model_checkpoints/UNetpp_B5_BS12_77ep.pt', map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
 
-    make_submission(model, smp_config, 'data')
+    submission_dir = 'submissions/UNetpp_B5_BS12_77ep_cluster_2.csv'
+    make_submission(model, smp_config, 'data', submission_dir)
