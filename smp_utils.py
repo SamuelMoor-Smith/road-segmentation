@@ -74,7 +74,7 @@ class Epoch:
 
                 offset = (epoch_num % len(iterator))
                 adjusted_it = (it + offset) % len(iterator) # for more validation display variety
-                if 'show_val' in config and config['show_val'] and self.stage_name == 'valid' and adjusted_it == 0:
+                if 'show_val' in config and config['show_val'] and self.stage_name == 'valid' and adjusted_it == 0 and epoch_num % 10 == 0:
                     orig_x = orig_x.permute(0, 3, 1, 2) # confusing to look at -
                     show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
         return logs
