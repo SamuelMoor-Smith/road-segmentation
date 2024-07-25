@@ -79,42 +79,43 @@ def train_smp(config, data_dir: str):
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
     encoder_weights = ENCODER_WEIGHTS
 
-    # Look into aux_params - maybe also MA NET
-
-    if model_name == 'UnetPlusPlus':
-        model = smp.UnetPlusPlus(
-            encoder_name=backbone,
-            encoder_weights=encoder_weights,
-            decoder_channels=decoder_channels,
-            decoder_attention_type=None,
-            classes=1,
-            activation=None,
-        )
-    elif model_name == 'PSPNet':
-        model = smp.PSPNet(
-            encoder_name=backbone,
-            encoder_weights=encoder_weights,
-            classes=1,
-            activation=None,
-        )
-    elif model_name == 'DeepLabV3Plus':
-        model = smp.DeepLabV3Plus(
-            encoder_name=backbone,
-            encoder_weights=encoder_weights,
-            classes=1,
-            activation=None,
-        )
+    if 'model' in config and config['model'] is not None:
+        model = config['model']
     else:
-        raise ValueError(f"Model name {model_name} not recognized")
+        if model_name == 'UnetPlusPlus':
+            model = smp.UnetPlusPlus(
+                encoder_name=backbone,
+                encoder_weights=encoder_weights,
+                decoder_channels=decoder_channels,
+                decoder_attention_type=None,
+                classes=1,
+                activation=None,
+            )
+        elif model_name == 'PSPNet':
+            model = smp.PSPNet(
+                encoder_name=backbone,
+                encoder_weights=encoder_weights,
+                classes=1,
+                activation=None,
+            )
+        elif model_name == 'DeepLabV3Plus':
+            model = smp.DeepLabV3Plus(
+                encoder_name=backbone,
+                encoder_weights=encoder_weights,
+                classes=1,
+                activation=None,
+            )
+        else:
+            raise ValueError(f"Model name {model_name} not recognized")
 
-    model.to(device)
-    loss = get_loss_function(config['loss_function'])
-    optimizer = get_optimizer(config['optimizer'], model, lr)
+        model.to(device)
+        loss = get_loss_function(config['loss_function'])
+        optimizer = get_optimizer(config['optimizer'], model, lr)
 
-    metrics = ["f1_score",
-               "iou_score",
-               "accuracy",
-               ]
+        metrics = ["f1_score",
+                   "iou_score",
+                   "accuracy",
+                   ]
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True) # can play around with patience, factor, etc.
 
