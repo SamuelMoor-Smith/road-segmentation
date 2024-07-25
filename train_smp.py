@@ -108,14 +108,14 @@ def train_smp(config, data_dir: str):
         else:
             raise ValueError(f"Model name {model_name} not recognized")
 
-        model.to(device)
-        loss = get_loss_function(config['loss_function'])
-        optimizer = get_optimizer(config['optimizer'], model, lr)
+    model.to(device)
+    loss = get_loss_function(config['loss_function'])
+    optimizer = get_optimizer(config['optimizer'], model, lr)
 
-        metrics = ["f1_score",
-                   "iou_score",
-                   "accuracy",
-                   ]
+    metrics = ["f1_score",
+               "iou_score",
+               "accuracy",
+               ]
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True) # can play around with patience, factor, etc.
 
