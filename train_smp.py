@@ -74,6 +74,7 @@ def train_smp(config, data_dir: str):
     device = config['device']
     model_save_path = config['model_save_path']
     model_name = config['model_name']
+    metric = config['metric']
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
@@ -182,10 +183,10 @@ def train_smp(config, data_dir: str):
         print(f"Epoch {i+1}/{epochs}")
         train_logs = train_epoch.run(train_loader, i, config)
         valid_logs = valid_epoch.run(valid_loader, i, config)
-        scheduler.step(valid_logs["iou_score"])
+        scheduler.step(valid_logs[metric])
 
-        if valid_logs["iou_score"] > best_iou:
-            best_iou = valid_logs["iou_score"]
+        if valid_logs[metric] > best_iou:
+            best_iou = valid_logs[metric]
             torch.save(model.state_dict(), model_save_path)
 
     return model
