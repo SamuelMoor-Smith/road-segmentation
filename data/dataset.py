@@ -16,21 +16,6 @@ def preprocess_mask(mask):
 
 
 def norm_image(image, path):
-    # ETH
-    # Channel Mean Red 127.53376879537902 std: 22.159251754728558
-    # Channel Mean Green 129.9037049739306 std: 16.83839557769458
-    # Channel Mean Blue 132.99672323250232 std: 14.123010515491698
-
-    # EPFL
-    # Channel Mean Red 86.4436070260915 std: 11.374039284021041
-    # Channel Mean Green 84.39788072036121 std: 10.44946708864102
-    # Channel Mean Blue 75.52603833056129 std: 11.041141508183328
-
-    # Deepglobe
-    # Channel Mean Red 130.82153585766625 std: 17.056575274143956
-    # Channel Mean Green 127.29455356078738 std: 14.779921625204398
-    # Channel Mean Blue 116.04071009795624 std: 13.09080429407446
-
     if 'eth' in path:
         mean = np.array([127.53376879537902, 129.9037049739306, 132.99672323250232])
         std = np.array([22.159251754728558, 16.83839557769458, 14.123010515491698])
@@ -126,7 +111,6 @@ class ImageDataset(torch.utils.data.Dataset):
             tensors = augment.to_tensor()(image=image, mask=mask)
             image = tensors['image']
             mask = tensors['mask']
-        image = norm_image(image, img_path)
         image = image.type(torch.float32)
         mask = mask.type(torch.float32)
         if len(mask.size()) == 2:
