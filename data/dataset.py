@@ -2,20 +2,48 @@ import os
 import torch
 import numpy as np
 import cv2
-from PIL import Image
-from glob import glob
+
 from preprocess import augment
 import random
 
 
-def preprocess_mask(mask: torch.FloatTensor) -> torch.FloatTensor:
-    "This function takes a mask and converts it to a uint8 and float32,"
-    "then sets the bits that are 1.0 and 0.0, respectively."
+def preprocess_mask(mask):
     mask = (mask > 0).astype(np.uint8) * 255
     mask = mask.astype(np.float32)
     mask[mask == 255.0] = 1.0
     mask[mask == 0.0] = 0.0
     return mask
+
+
+def norm_image(image, path):
+    # ETH
+    # Channel Mean Red 127.53376879537902 std: 22.159251754728558
+    # Channel Mean Green 129.9037049739306 std: 16.83839557769458
+    # Channel Mean Blue 132.99672323250232 std: 14.123010515491698
+
+    # EPFL
+    # Channel Mean Red 86.4436070260915 std: 11.374039284021041
+    # Channel Mean Green 84.39788072036121 std: 10.44946708864102
+    # Channel Mean Blue 75.52603833056129 std: 11.041141508183328
+
+    # Deepglobe
+    # Channel Mean Red 130.82153585766625 std: 17.056575274143956
+    # Channel Mean Green 127.29455356078738 std: 14.779921625204398
+    # Channel Mean Blue 116.04071009795624 std: 13.09080429407446
+
+    if 'eth' in path:
+        mean = np.array([127.53376879537902, 129.9037049739306, 132.99672323250232])
+        std = np.array([22.159251754728558, 16.83839557769458, 14.123010515491698])
+    elif 'epfl' in path:
+        mean = np.array([86.4436070260915, 84.39788072036121, 75.52603833056129])
+        std = np.array([11.374039284021041, 10.44946708864102, 11.041141508183328])
+    elif 'deepglobe' in path:
+        mean = np.array([130.82153585766625, 127.29455356078738, 116.04071009795624])
+        std = np.array([17.056575274143956, 14.779921625204398, 13.09080429407446])
+    mean = mean[np.newaxis, np.newaxis, :]
+    std = std[np.newaxis, np.newaxis, :]
+    image = (image - mean) / std
+    return image
 
 
 class ImageDataset(torch.utils.data.Dataset):
@@ -82,8 +110,10 @@ class ImageDataset(torch.utils.data.Dataset):
         if 'dg' in mask_path:
             mask_path = mask_path.replace('sat', 'mask')
 
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE) # or unchanged - anschauen ob preprocess nötig
+
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask = preprocess_mask(mask)
+        image = norm_image(image, img_path)
         if self.transforms is not None:
             transformation = self.transforms(image=image, mask=mask)
             image = transformation['image']
