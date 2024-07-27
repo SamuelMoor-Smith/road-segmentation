@@ -1,3 +1,9 @@
+"""
+This file contains the training and validation loops for the model. The code was taken from the segmentation_models_pytorch
+as the utils module was deprecated. The code was copied here to ensure that the training and validation loops are still
+available for use. The code was only slightly modified to fit the project structure.
+"""
+
 import sys
 
 import segmentation_models_pytorch as smp
@@ -51,7 +57,6 @@ class Epoch:
             for it, (x, y, orig_x) in enumerate(iterator):
                 x, y = x.to(self.device), y.to(self.device)
                 loss, y_pred = self.batch_update(x, y)
-                # update loss logs
                 loss_value = loss.cpu().detach().numpy()
                 loss_meter.add(loss_value)
                 loss_logs = {config['loss_function']: loss_meter.mean}

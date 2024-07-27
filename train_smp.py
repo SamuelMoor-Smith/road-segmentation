@@ -1,3 +1,16 @@
+"""
+Main training script for training a model using segmentation_models_pytorch. The available models are UnetPlusPlus,
+PSPNet and DeepLabV3Plus. The script uses the TrainEpoch and ValidEpoch from the deprecated utils module from smp
+and thus we have copied the code here.
+
+How to use:
+    1. Create a config file in the config_loader.py file
+    2. Activate a virtual environment with python version 3.10
+    3. pip install -r requirements.txt
+    4. Run the script with the following command:
+        python train_smp.py --config unetpp_b5 --data_dir /path/to/data
+"""
+
 import segmentation_models_pytorch as smp
 from preprocess.augment import smp_get_preprocessing
 import torch
@@ -45,15 +58,15 @@ def get_optimizer(optimizer: str, model, lr: float):
         raise ValueError(f"Optimizer {optimizer} not recognized")
 
 
-def get_scheduler(scheduler: str, optimizer, verbose: bool):
+def get_scheduler(scheduler: str, optimizer):
     if scheduler == 'ReduceLROnPlateau':
-        return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=verbose)
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True)
     elif scheduler == 'OneCycleLR':
-        return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, verbose=verbose)
+        return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, verbose=True)
     elif scheduler == 'CosineAnnealingLR':
-        return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, verbose=verbose)
+        return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, verbose=True)
     elif scheduler == 'CycleLR':
-        return torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.001, max_lr=0.1, verbose=verbose)
+        return torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.001, max_lr=0.01, verbose=True)
     else:
         raise ValueError(f"Scheduler {scheduler} not recognized")
 
@@ -76,11 +89,14 @@ def train_smp(config, data_dir: str):
     model_name = config['model_name']
     metric = config['metric']
 
-    preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, ENCODER_WEIGHTS)
-    preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
     encoder_weights = ENCODER_WEIGHTS
+    if 'encoder_weights' in config:
+        encoder_weights = config['encoder_weights']
 
-    if 'model' in config and config['model'] is not None:
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, encoder_weights)
+    preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
+
+    if 'model' in config and config['model'] is not None:  # if we want to continue training
         model = config['model']
     else:
         if model_name == 'UnetPlusPlus':
@@ -112,13 +128,10 @@ def train_smp(config, data_dir: str):
     model.to(device)
     loss = get_loss_function(config['loss_function'])
     optimizer = get_optimizer(config['optimizer'], model, lr)
-
-    metrics = ["f1_score",
-               "iou_score",
-               "accuracy",
-               ]
-
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True) # can play around with patience, factor, etc.
+    if 'scheduler' in config:
+        scheduler = get_scheduler(config['scheduler'], optimizer)
+    else:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', verbose=True)
 
     train_dataset = ImageDataset(
         data_dir=data_dir,
@@ -164,7 +177,7 @@ def train_smp(config, data_dir: str):
     train_epoch = TrainEpoch(
         model,
         loss=loss,
-        metrics=metrics,
+        metrics=["f1_score", "iou_score", "accuracy"],
         optimizer=optimizer,
         device=device,
         verbose=True,
@@ -173,20 +186,21 @@ def train_smp(config, data_dir: str):
     valid_epoch = ValidEpoch(
         model,
         loss=loss,
-        metrics=metrics,
+        metrics=["f1_score", "iou_score", "accuracy"],
         device=device,
         verbose=True,
     )
 
-    best_iou = 0
+    best_score = 0
+
     for i in range(epochs):
         print(f"Epoch {i+1}/{epochs}")
         train_logs = train_epoch.run(train_loader, i, config)
         valid_logs = valid_epoch.run(valid_loader, i, config)
         scheduler.step(valid_logs[metric])
 
-        if valid_logs[metric] > best_iou:
-            best_iou = valid_logs[metric]
+        if valid_logs[metric] > best_score:
+            best_score = valid_logs[metric]
             torch.save(model.state_dict(), model_save_path)
 
     return model
@@ -196,8 +210,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--config", default="unetpp_b5")
+    parser.add_argument("--data_dir", default="/home/shoenig/road-segmentation/data")
 
     args = parser.parse_args()
 
     config = get_config(args.config)
-    train_smp(config, data_dir="/home/shoenig/road-segmentation/data")
+    data_dir = args.data_dir
+    train_smp(config, data_dir=data_dir)

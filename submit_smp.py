@@ -20,6 +20,48 @@ def patch_to_label(patch):
         return 0
 
 
+def compute_true_count(i, k, l, patched_preds):
+    top = patched_preds[i][k-1][l]
+    bot = patched_preds[i][k+1][l]
+    left = patched_preds[i][k][l-1]
+    right = patched_preds[i][k][l+1]
+    tl = patched_preds[i][k-1][l-1]
+    tr = patched_preds[i][k-1][l+1]
+    bl = patched_preds[i][k+1][l-1]
+    br = patched_preds[i][k+1][l+1]
+    variables = [top, bot, left, right, tl, tr, br, bl]
+    true_count = sum(variables)
+    return true_count
+
+def post_process_patches(patched_preds):
+    postprocessed_patches = np.empty_like(patched_preds)
+    for i in range(len(patched_preds)):
+        for k in range(25):
+            for l in range(25):
+                if k > 1 and k < 23 and l > 1 and l < 23:
+                    true_count = compute_true_count(i, k, l, patched_preds)
+                    if patched_preds[i][k][l] == 0:
+                        if true_count == 8:
+                            postprocessed_patches[i][k][l] = 0.7
+                        else:
+                            postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+                    else:
+                        if true_count == 0:
+                            postprocessed_patches[i][k][l] = 0.3
+                        elif true_count == 1:
+                            nei_counts = []
+                            for nei in [(k - 1, l), (k - 1, l - 1), (k - 1, l + 1), (k, l + 1), (k, l - 1), (k + 1, l),
+                                        (k + 1, l - 1), (k + 1, l + 1)]:
+                                nei_counts.append(compute_true_count(i, nei[0], nei[1], patched_preds))
+                                if all(count <= 1 for count in nei_counts):
+                                    postprocessed_patches[i][k][l] = 0.7
+                                else:
+                                    postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+                        else:
+                            postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+                else:
+                    postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+
 def mask_to_submission_strings(image_filename, im_arr, mask_dir=None, full_mask_dir=None):
     img_number = int(re.search(r"\d+", image_filename).group(0))
     im_arr = (im_arr.reshape(400, 400) * 255.0).astype(np.uint8)
@@ -79,7 +121,6 @@ def make_submission(model, config, test_dir, submission_dir):
                              worker_init_fn=42,
                              )
 
-    imgs_lst = []
     preds_lst = []
 
     with torch.no_grad():
@@ -87,11 +128,8 @@ def make_submission(model, config, test_dir, submission_dir):
             images = images.to(device)
             preds = model.predict(images)
 
-            predicted_masks = torch.sigmoid(preds).permute(0, 2, 3,
-                                            1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
-            images = images.permute(0, 2, 3,
-                                    1).cpu().numpy()  # permutes similar to reshape, such that [batch_size,height,width,channels]
-
+            predicted_masks = torch.sigmoid(preds).permute(0, 2, 3, 1).cpu().numpy()  # [batch_size,height,width,channels]
+            images = images.permute(0, 2, 3, 1).cpu().numpy()
 
             crop = A.Compose([
                 A.CenterCrop(height=400, width=400),
@@ -99,9 +137,7 @@ def make_submission(model, config, test_dir, submission_dir):
 
             for image, mask in zip(images, predicted_masks):
                 cropped = crop(image=image, mask=mask)
-                image = cropped["image"]
                 mask = cropped["mask"]
-                imgs_lst.append(image)
                 preds_lst.append(mask)
 
     masks_to_submission(submission_filename=submission_dir,
@@ -117,7 +153,7 @@ if __name__ == "__main__":
     # Load the state dictionary into the model
     smp_config = {
         'decoder_channels': [256, 128, 64, 32, 16],
-        'backbone': 'efficientnet-b5',
+        'backbone': 'efficientnet-b7',
         'epochs': 150,
         'use_epfl': False,
         'use_deepglobe': False,
@@ -132,7 +168,7 @@ if __name__ == "__main__":
     }
 
     model = smp.UnetPlusPlus(
-        encoder_name='efficientnet-b5',
+        encoder_name='efficientnet-b7',
         encoder_weights='imagenet',
         decoder_channels=[256, 128, 64, 32, 16],
         decoder_attention_type=None,
@@ -140,8 +176,8 @@ if __name__ == "__main__":
         activation=None,
     )
 
-    state_dict = torch.load('model_checkpoints/UNetpp_B5_BS12_77ep.pt', map_location=torch.device('cpu'))
+    state_dict = torch.load('model_checkpoints/UNetpp_B7_0.927.pt', map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
 
-    submission_dir = 'submissions/UNetpp_B5_BS12_77ep_cluster_2.csv'
+    submission_dir = 'submissions/UNetpp_0.927_Basic_PostP.csv'
     make_submission(model, smp_config, 'data', submission_dir)
