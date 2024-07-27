@@ -40,8 +40,8 @@ def norm_image(image, path):
     elif 'deepglobe' in path:
         mean = np.array([130.82153585766625, 127.29455356078738, 116.04071009795624])
         std = np.array([17.056575274143956, 14.779921625204398, 13.09080429407446])
-    mean = mean[np.newaxis, np.newaxis, :]
-    std = std[np.newaxis, np.newaxis, :]
+    mean = mean[:, np.newaxis, np.newaxis]
+    std = std[:, np.newaxis, np.newaxis]
     image = (image - mean) / std
     return image
 
@@ -113,7 +113,6 @@ class ImageDataset(torch.utils.data.Dataset):
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask = preprocess_mask(mask)
-        image = norm_image(image, img_path)
         if self.transforms is not None:
             transformation = self.transforms(image=image, mask=mask)
             image = transformation['image']
@@ -127,7 +126,8 @@ class ImageDataset(torch.utils.data.Dataset):
             tensors = augment.to_tensor()(image=image, mask=mask)
             image = tensors['image']
             mask = tensors['mask']
-        image = image.type(torch.float32) # check if I need any of that
+        image = norm_image(image, img_path)
+        image = image.type(torch.float32)
         mask = mask.type(torch.float32)
         if len(mask.size()) == 2:
             mask = torch.unsqueeze(mask, 0)
