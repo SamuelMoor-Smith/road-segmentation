@@ -33,6 +33,7 @@ def compute_true_count(i, k, l, patched_preds):
     true_count = sum(variables)
     return true_count
 
+
 def post_process_patches(patched_preds):
     postprocessed_patches = np.empty_like(patched_preds)
     for i in range(len(patched_preds)):
@@ -140,6 +141,8 @@ def make_submission(model, config, test_dir, submission_dir):
                 mask = cropped["mask"]
                 preds_lst.append(mask)
 
+
+
     masks_to_submission(submission_filename=submission_dir,
                         full_mask_dir="full_masks/",
                         mask_dir="patched_masks/",
@@ -176,8 +179,8 @@ if __name__ == "__main__":
         activation=None,
     )
 
-    state_dict = torch.load('model_checkpoints/UNetpp_B7_0.927.pt', map_location=torch.device('cpu'))
+    state_dict = torch.load('model_checkpoints/UNetpp_B7_Final.pt', map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
 
-    submission_dir = 'submissions/UNetpp_0.927_Basic_PostP.csv'
+    submission_dir = 'submissions/UNetpp_06673.csv'
     make_submission(model, smp_config, 'data', submission_dir)
