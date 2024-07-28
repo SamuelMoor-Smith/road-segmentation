@@ -8,7 +8,7 @@ How to use:
     2. Activate a virtual environment with python version 3.10
     3. pip install -r requirements.txt
     4. Run the script with the following command:
-        python train_smp.py --config unetpp_b5 --data_dir /path/to/data
+        python train_smp.py --config defined_config --data_dir /path/to/data
 """
 
 import segmentation_models_pytorch as smp
@@ -19,6 +19,12 @@ from data.dataset import ImageDataset
 from smp_utils import TrainEpoch, ValidEpoch
 import argparse
 from config_loader import get_config
+from models.UNet_provided import UNet
+from models.ResNet34_deeper import ResNetBackbone as ResNetBackboneDeeper
+from models.ResNet34 import ResNetBackbone
+from models.LinkNet import LinkNet
+from models.DLinkNet import LinkNet as DLinkNet
+from models.NLLinkNet import NL34_LinkNet as NLLinkNet
 
 ENCODER_WEIGHTS = 'imagenet'
 #DATA_DIR = "/Users/sebastian/University/Master/second_term/cil/road-segmentation/data/training"
@@ -89,41 +95,58 @@ def train_smp(config, data_dir: str):
     model_name = config['model_name']
     metric = config['metric']
 
-    encoder_weights = ENCODER_WEIGHTS
-    if 'encoder_weights' in config:
-        encoder_weights = config['encoder_weights']
+    if model_name in ['UnetPlusPlus', 'DeepLabV3Plus', 'PSPNet']:
+        encoder_weights = ENCODER_WEIGHTS
+        if 'encoder_weights' in config:
+            encoder_weights = config['encoder_weights']
 
-    preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, encoder_weights)
-    preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
+        preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, encoder_weights)
+        preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
 
-    if 'model' in config and config['model'] is not None:  # if we want to continue training
-        model = config['model']
+        if 'model' in config and config['model'] is not None:  # if we want to continue training
+            model = config['model']
+        else:
+            if model_name == 'UnetPlusPlus':
+                model = smp.UnetPlusPlus(
+                    encoder_name=backbone,
+                    encoder_weights=encoder_weights,
+                    decoder_channels=decoder_channels,
+                    decoder_attention_type=None,
+                    classes=1,
+                    activation=None,
+                )
+            elif model_name == 'PSPNet':
+                model = smp.PSPNet(
+                    encoder_name=backbone,
+                    encoder_weights=encoder_weights,
+                    classes=1,
+                    activation=None,
+                )
+            elif model_name == 'DeepLabV3Plus':
+                model = smp.DeepLabV3Plus(
+                    encoder_name=backbone,
+                    encoder_weights=encoder_weights,
+                    classes=1,
+                    activation=None,
+                )
+            else:
+                raise ValueError(f"Model name {model_name} not recognized")
     else:
-        if model_name == 'UnetPlusPlus':
-            model = smp.UnetPlusPlus(
-                encoder_name=backbone,
-                encoder_weights=encoder_weights,
-                decoder_channels=decoder_channels,
-                decoder_attention_type=None,
-                classes=1,
-                activation=None,
-            )
-        elif model_name == 'PSPNet':
-            model = smp.PSPNet(
-                encoder_name=backbone,
-                encoder_weights=encoder_weights,
-                classes=1,
-                activation=None,
-            )
-        elif model_name == 'DeepLabV3Plus':
-            model = smp.DeepLabV3Plus(
-                encoder_name=backbone,
-                encoder_weights=encoder_weights,
-                classes=1,
-                activation=None,
-            )
+        if model_name == 'UNet':
+            model = UNet()
+        elif model_name == 'ResNet34':
+            model = ResNetBackbone()
+        elif model_name == 'ResNet34Deeper':
+            model = ResNetBackboneDeeper()
+        elif model_name == 'LinkNet':
+            model = LinkNet()
+        elif model_name == 'DLinkNet':
+            model = DLinkNet()
+        elif model_name == 'NLLinkNet':
+            model = NLLinkNet()
         else:
             raise ValueError(f"Model name {model_name} not recognized")
+        preprocessing_fn = None
 
     model.to(device)
     loss = get_loss_function(config['loss_function'])
