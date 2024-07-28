@@ -20,4 +20,4 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Run the Python script with command-line arguments
-python train_smp.py --config 'unetpp_b5'
+python train_smp.py --config 'deeplabv3plus'

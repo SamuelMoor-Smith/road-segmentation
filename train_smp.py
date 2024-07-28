@@ -230,7 +230,7 @@ def train_smp(config, data_dir: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    """parser = argparse.ArgumentParser()
 
     parser.add_argument("--config", default="unetpp_b5")
     parser.add_argument("--data_dir", default="/home/shoenig/road-segmentation/data")
@@ -239,4 +239,26 @@ if __name__ == "__main__":
 
     config = get_config(args.config)
     data_dir = args.data_dir
+    train_smp(config, data_dir=data_dir)"""
+    config = {
+        'decoder_channels': [256, 128, 64, 32, 16],
+        'backbone': 'efficientnet-b7',
+        'epochs': 100,
+        'use_epfl': True,
+        'use_deepglobe': True,
+        'augmentation_factor': 4,
+        'transformation': 'minimal',
+        'resize': 416,
+        'validation_size': 0.01,
+        'seed': 42,
+        'batch_size': 8,
+        'lr': 0.001,
+        'device': 'cpu',
+        'metric': 'iou_score',
+        'model_save_path': '/content/drive/MyDrive/models/Minimal',
+        'model_name': 'UnetPlusPlus',
+        'loss_function': 'SoftBCEWithLogitsLoss',
+        'optimizer': 'AdamW',
+        'show_val': False,
+    }
     train_smp(config, data_dir=data_dir)

@@ -199,3 +199,5 @@ exploration/.ipynb_checkpoints/
 /data/training/groundtruth/deepglobe_filtered/
 /data/training/groundtruth/deepglobe_rejected/
 /data_cluster/
+patched_masks
+full_masks

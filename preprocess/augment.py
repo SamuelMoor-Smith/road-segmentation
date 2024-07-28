@@ -15,7 +15,6 @@ def smp_get_preprocessing(preprocessing_fn):
         transform: albumentations.Compose
 
     """
-
     _transform = [
         A.Lambda(image=preprocessing_fn),
         ToTensorV2()

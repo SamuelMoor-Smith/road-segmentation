@@ -9,6 +9,8 @@ from PIL import Image
 from torch.utils.data import DataLoader
 from preprocess.augment import smp_get_preprocessing
 from data.dataset import TestDataset
+from tqdm import tqdm
+import argparse
 
 
 def patch_to_label(patch):
@@ -39,7 +41,7 @@ def post_process_patches(patched_preds):
     for i in range(len(patched_preds)):
         for k in range(25):
             for l in range(25):
-                if k > 1 and k < 23 and l > 1 and l < 23:
+                if k > 0 and k < 24 and l > 0 and l < 24:
                     true_count = compute_true_count(i, k, l, patched_preds)
                     if patched_preds[i][k][l] == 0:
                         if true_count == 8:
@@ -49,36 +51,32 @@ def post_process_patches(patched_preds):
                     else:
                         if true_count == 0:
                             postprocessed_patches[i][k][l] = 0.3
-                        elif true_count == 1:
-                            nei_counts = []
-                            for nei in [(k - 1, l), (k - 1, l - 1), (k - 1, l + 1), (k, l + 1), (k, l - 1), (k + 1, l),
-                                        (k + 1, l - 1), (k + 1, l + 1)]:
-                                nei_counts.append(compute_true_count(i, nei[0], nei[1], patched_preds))
-                                if all(count <= 1 for count in nei_counts):
-                                    postprocessed_patches[i][k][l] = 0.7
-                                else:
-                                    postprocessed_patches[i][k][l] = patched_preds[i][k][l]
                         else:
                             postprocessed_patches[i][k][l] = patched_preds[i][k][l]
                 else:
                     postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+    return postprocessed_patches
+
 
 def mask_to_submission_strings(image_filename, im_arr, mask_dir=None, full_mask_dir=None):
     img_number = int(re.search(r"\d+", image_filename).group(0))
     im_arr = (im_arr.reshape(400, 400) * 255.0).astype(np.uint8)
-    patch_size = 16
-    mask = np.zeros_like(im_arr)
-    for j in range(0, im_arr.shape[1], patch_size):
-        for i in range(0, im_arr.shape[0], patch_size):
-            patch = im_arr[i:i + patch_size, j:j + patch_size]
+    patch_preds = np.zeros((25, 25))
+    for j in range(0, im_arr.shape[1], 16):
+        for i in range(0, im_arr.shape[0], 16):
+            patch = im_arr[i:i + 16, j:j + 16]
             label = patch_to_label(patch)
-            mask[i:i + patch_size, j:j + patch_size] = int(label * 255)
-            yield ("{:03d}_{}_{},{}".format(img_number, j, i, label))
-
-    if mask_dir:
+            patch_preds[i // 16, j // 16] = label
+            #yield ("{:03d}_{}_{},{}".format(img_number, j, i, label))
+    """if mask_dir:
         save_mask_as_img(mask, os.path.join(mask_dir, "mask_" + image_filename))
     if full_mask_dir:
-        save_mask_as_img(im_arr, os.path.join(full_mask_dir, "mask_" + image_filename))
+        save_mask_as_img(im_arr, os.path.join(full_mask_dir, "mask_" + image_filename))"""
+
+    for j in range(patch_preds.shape[0]):
+        for i in range(patch_preds.shape[1]):
+            yield "{:03d}_{}_{},{}".format(img_number, j*16, i*16, int(patch_preds[i, j]))
+
 
 
 def save_mask_as_img(img_arr, mask_filename):
@@ -88,20 +86,37 @@ def save_mask_as_img(img_arr, mask_filename):
 
 
 def masks_to_submission(submission_filename, image_filenames, predictions, full_mask_dir=None, mask_dir=None):
-    """Converts images into a submission file"""
     with open(submission_filename, 'w') as f:
         f.write('id,prediction\n')
         for fn, pred in zip(image_filenames, predictions):
             f.writelines('{}\n'.format(s) for s in
-                         mask_to_submission_strings(image_filename=fn, im_arr=pred, mask_dir=mask_dir,
-                                                    full_mask_dir=full_mask_dir))
+                         mask_to_submission_strings(image_filename=fn, im_arr=pred, mask_dir=mask_dir, full_mask_dir=full_mask_dir))
 
 
-def make_submission(model, config, test_dir, submission_dir):
-    backbone = config['backbone']
-    device = config['device']
-    resize = config['resize']
-    batch_size = config['batch_size']
+def make_submission(models, backbones, device, test_dir, submission_dir):
+    if len(models) > 1:
+        preds, fn = get_ensemble_preds(models, backbones, device, test_dir)
+    else:
+        preds, fn = get_preds(models[0], backbones[0], test_dir, submission_dir)
+
+    masks_to_submission(submission_filename=submission_dir,
+                        full_mask_dir="full_masks/",
+                        mask_dir="patched_masks/",
+                        image_filenames=fn,
+                        predictions=preds)
+
+
+def get_ensemble_preds(models, backbones, device, test_dir):
+    all_preds = []
+    for model, backbone in zip(models, backbones):
+        test_preds, fn = get_preds(model, backbone, device, test_dir)
+        all_preds.append(test_preds)
+
+    ensemble_preds = np.mean(all_preds, axis=0)
+    return ensemble_preds, fn
+
+
+def get_preds(model, backbone, device, test_dir):
     preprocessing_fn = smp.encoders.get_preprocessing_fn(backbone, 'imagenet')
     preprocessing_fn = smp_get_preprocessing(preprocessing_fn)
 
@@ -112,20 +127,20 @@ def make_submission(model, config, test_dir, submission_dir):
         data_dir=test_dir,
         transforms='validation',
         preprocess=preprocessing_fn,
-        resize=resize)
+        resize=416)
 
     test_loader = DataLoader(test_dataset,
-                             batch_size=batch_size,
+                             batch_size=4,
                              shuffle=False,
                              num_workers=0,
                              pin_memory=True,
                              worker_init_fn=42,
                              )
 
-    preds_lst = []
+    test_pred = []
 
     with torch.no_grad():
-        for images in test_loader:
+        for images in tqdm(test_loader):
             images = images.to(device)
             preds = model.predict(images)
 
@@ -139,38 +154,12 @@ def make_submission(model, config, test_dir, submission_dir):
             for image, mask in zip(images, predicted_masks):
                 cropped = crop(image=image, mask=mask)
                 mask = cropped["mask"]
-                preds_lst.append(mask)
-
-
-
-    masks_to_submission(submission_filename=submission_dir,
-                        full_mask_dir="full_masks/",
-                        mask_dir="patched_masks/",
-                        image_filenames=test_dataset.filenames,
-                        predictions=preds_lst)
+                test_pred.append(mask)
+    return test_pred, test_dataset.filenames
 
 
 if __name__ == "__main__":
-    # For debugging purposes
-    device = 'cpu'
-    # Load the state dictionary into the model
-    smp_config = {
-        'decoder_channels': [256, 128, 64, 32, 16],
-        'backbone': 'efficientnet-b7',
-        'epochs': 150,
-        'use_epfl': False,
-        'use_deepglobe': False,
-        'augmentation_factor': 1,
-        'transformation': 'minimal',
-        'resize': 416,
-        'validation_size': 0.15,
-        'seed': 42,
-        'batch_size': 4,
-        'lr': 0.0005,
-        'device': device
-    }
-
-    model = smp.UnetPlusPlus(
+    model1 = smp.UnetPlusPlus(
         encoder_name='efficientnet-b7',
         encoder_weights='imagenet',
         decoder_channels=[256, 128, 64, 32, 16],
@@ -180,7 +169,30 @@ if __name__ == "__main__":
     )
 
     state_dict = torch.load('model_checkpoints/UNetpp_B7_Final.pt', map_location=torch.device('cpu'))
-    model.load_state_dict(state_dict)
+    model1.load_state_dict(state_dict)
 
-    submission_dir = 'submissions/UNetpp_06673.csv'
-    make_submission(model, smp_config, 'data', submission_dir)
+    model2 = smp.DeepLabV3Plus(
+                encoder_name='timm-regnetx_160',
+                encoder_weights='imagenet',
+                classes=1,
+                activation=None,
+            )
+
+    state_dict = torch.load('model_checkpoints/timm-regnetx_160-final-batch_deeplabv3plus.pt', map_location=torch.device('cpu'))
+    model2.load_state_dict(state_dict)
+
+    model3 = smp.PSPNet(
+                encoder_name='timm-resnest200e',
+                encoder_weights='imagenet',
+                classes=1,
+                activation=None,
+            )
+
+    state_dict = torch.load('model_checkpoints/timm-resnest200e_pspnet.pt', map_location=torch.device('cpu'))
+    model3.load_state_dict(state_dict)
+
+    models = [model1, model2, model3]
+    backbones = ['efficientnet-b7', 'timm-regnetx_160', 'timm-resnest200e']
+
+    submission_dir = 'submissions/Ensemble.csv'
+    make_submission(models, backbones, 'cpu', 'data', submission_dir)
