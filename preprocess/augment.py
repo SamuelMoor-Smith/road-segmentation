@@ -1,7 +1,7 @@
 import albumentations as A
 
 
-def transformations(method: str):
+def apply_transforms(method: str):
     if method == 'affine':
         return A.Compose([
                      A.HorizontalFlip(p=0.5),
