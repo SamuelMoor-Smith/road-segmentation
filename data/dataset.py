@@ -76,10 +76,6 @@ class ImageDataset(torch.utils.data.Dataset):
                 x_augmented = x_augmented.transpose(2, 0, 1) # Change back to CxHxW
                 y_augmented = y_augmented.transpose(2, 0, 1)
                 return x_augmented, y_augmented
-        
-        if self.is_train:
-          # print(x.shape, y.shape)
-          x, y = augment.apply_transforms(x, y)
             
         return x, y
 
