@@ -11,8 +11,11 @@ from preprocess import augment
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
-    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400), only_eth=False, transform=None):
-        self.only_eth = only_eth
+    def __init__(self, data_dir, is_train, device, use_patches=True, resize_to=(400, 400), use_epfl=False,
+                 use_deepglobe1=False, use_deepglobe2=False, transform=None):
+        self.use_epfl = use_epfl
+        self.use_deepglobe1 = use_deepglobe1
+        self.use_deepglobe2 = use_deepglobe2
         self.data_dir = data_dir
         self.is_train = is_train
         self.device = device
@@ -24,21 +27,26 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def _load_data(self):  # not very scalable, but good enough for now
         if self.is_train:
-            if self.only_eth:
-                images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
-                masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
-            else:
-                images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
-                masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
+            images = load_all_from_path(os.path.join(self.data_dir, 'images', 'eth'))[:, :, :, :3]
+            masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'eth'))
 
+            if self.use_epfl:
                 images_epfl = load_all_from_path(os.path.join(self.data_dir, 'images', 'epfl'))
                 masks_epfl = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'epfl'))
+                images = np.concatenate([images, images_epfl], 0)
+                masks = np.concatenate([masks, masks_epfl], 0)
 
+            if self.use_deepglobe1:
                 images_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'images', 'deepglobe_small'))
                 masks_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'deepglobe_small'))
+                images = np.concatenate([images, images_deepglobe], 0)
+                masks = np.concatenate([masks, masks_deepglobe], 0)
 
-                images = np.concatenate([images, images_epfl, images_deepglobe], 0)
-                masks = np.concatenate([masks, masks_epfl, masks_deepglobe], 0)
+            if self.use_deepglobe2:
+                images_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'images', 'deepglobe_small2'))
+                masks_deepglobe = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'deepglobe_small2'))
+                images = np.concatenate([images, images_deepglobe], 0)
+                masks = np.concatenate([masks, masks_deepglobe], 0)
         else:
             images = load_all_from_path(os.path.join(self.data_dir, 'images', 'val'))[:, :, :, :3]
             masks = load_all_from_path(os.path.join(self.data_dir, 'groundtruth', 'val'))
