@@ -105,6 +105,7 @@ class TrainEpoch(Epoch):
         self.optimizer.zero_grad()
         with autocast():
             prediction = self.model.forward(x)
+            prediction = torch.clamp(prediction, 0, 1) # TODO REMOVE FOR SMP MODELS!!!
             loss = self.loss(prediction, y)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
@@ -129,5 +130,6 @@ class ValidEpoch(Epoch):
     def batch_update(self, x, y):
         with torch.no_grad():
             prediction = self.model.forward(x)
+            prediction = torch.clamp(prediction, 0, 1) # TODO REMOVE FOR SMP MODELS!!!
             loss = self.loss(prediction, y)
         return loss, prediction
