@@ -142,7 +142,7 @@ def train_smp(config, data_dir: str):
         validation_size=validation_size,
         seed=seed,
         transforms=transformation,
-        preprocess=preprocessing_fn,
+        preprocess=None,
         augmentation_factor=augmentation_factor,
         resize=resize)
 
@@ -155,7 +155,7 @@ def train_smp(config, data_dir: str):
         validation_size=validation_size,
         seed=seed,
         transforms='validation',
-        preprocess=preprocessing_fn,
+        preprocess=None,
         augmentation_factor=augmentation_factor,
         resize=resize,)
 
