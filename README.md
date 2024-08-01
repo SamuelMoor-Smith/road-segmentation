@@ -73,8 +73,6 @@ The prediction to recreate our results (after downloading the models) can be ach
 (Make sure you are in the road-segmentation directory and have the virtual environment activated)
 
 ```bash
-
-```bash
 python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --device cpu --data-dir data --submission-dir submissions/Ensemble.csv
 ```
 
