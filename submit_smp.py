@@ -73,6 +73,7 @@ def mask_to_submission_strings(image_filename, im_arr, mask_dir=None, full_mask_
     if full_mask_dir:
         save_mask_as_img(im_arr, os.path.join(full_mask_dir, "mask_" + image_filename))"""
 
+    patch_preds = post_process_patches(patch_preds)
     for j in range(patch_preds.shape[0]):
         for i in range(patch_preds.shape[1]):
             yield "{:03d}_{}_{},{}".format(img_number, j*16, i*16, int(patch_preds[i, j]))
@@ -178,7 +179,7 @@ if __name__ == "__main__":
                 activation=None,
             )
 
-    state_dict = torch.load('model_checkpoints/timm-regnetx_160-final-batch_deeplabv3plus.pt', map_location=torch.device('cpu'))
+    state_dict = torch.load('model_checkpoints/DeepLab_regnetx_final.pt', map_location=torch.device('cpu'))
     model2.load_state_dict(state_dict)
 
     model3 = smp.PSPNet(
@@ -188,7 +189,7 @@ if __name__ == "__main__":
                 activation=None,
             )
 
-    state_dict = torch.load('model_checkpoints/timm-resnest200e_pspnet.pt', map_location=torch.device('cpu'))
+    state_dict = torch.load('model_checkpoints/Psp_resnet200e_final.pt', map_location=torch.device('cpu'))
     model3.load_state_dict(state_dict)
 
     models = [model1, model2, model3]

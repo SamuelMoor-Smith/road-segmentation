@@ -30,11 +30,11 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
         return standard
     elif augmentation == 'minimal':
         return A.Compose([
-            standard,
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.5),
             A.RandomRotate90(p=0.5),
             A.Transpose(p=0.5),
+            standard,
         ], p=1)
     elif augmentation == 'advanced-satellite-augmentation':
         return A.Compose([
