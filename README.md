@@ -1,4 +1,4 @@
-# CIL Road Segmentation Project
+# Pathfinders: ETHZ CIL Road Segmentation Project
 This project is completed as a part of the Computational Intelligence Lab course during the Spring 2024 semester. This GitHub repository contains the code for the Road Segmentation project.
 
 ## Installation
@@ -68,7 +68,7 @@ PSPNet: https://polybox.ethz.ch/index.php/s/1enDvq10AekQZ6a
 
 You can either specify multiple models or just a single one to get the prediction. The length of the models, the checkpoints and the backbones has to match.
 
-The prediction to recreate our results can be done with the following command:
+The prediction to recreate our results (after downloading the models) can be achieved with the following command:
 
 ```bash
 python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --device cpu --data-dir data --submission-dir submissions/Ensemble.csv
