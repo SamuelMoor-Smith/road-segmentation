@@ -51,6 +51,7 @@ they can also be changed
 
 
 Each config is named. To train a model, you can run the following command:
+(Make sure you are in the road-segmentation directory and have the virtual environment activated)
 
 ```bash
 python train_smp.py --config 'config_name'
@@ -69,6 +70,9 @@ PSPNet: https://polybox.ethz.ch/index.php/s/1enDvq10AekQZ6a
 You can either specify multiple models or just a single one to get the prediction. The length of the models, the checkpoints and the backbones has to match.
 
 The prediction to recreate our results (after downloading the models) can be achieved with the following command:
+(Make sure you are in the road-segmentation directory and have the virtual environment activated)
+
+```bash
 
 ```bash
 python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --device cpu --data-dir data --submission-dir submissions/Ensemble.csv

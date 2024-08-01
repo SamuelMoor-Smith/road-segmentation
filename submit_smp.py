@@ -207,7 +207,7 @@ if __name__ == "__main__":
     models = [load_model(m, b, c) for m, b, c in zip(args.models, args.backbones, args.checkpoints)]
 
     make_submission(models, args.backbones, args.device, args.data_dir, args.submission_dir)
-    model1 = smp.UnetPlusPlus(
+    """model1 = smp.UnetPlusPlus(
         encoder_name='efficientnet-b7',
         encoder_weights='imagenet',
         decoder_channels=[256, 128, 64, 32, 16],
@@ -243,4 +243,4 @@ if __name__ == "__main__":
     backbones = ['efficientnet-b7', 'timm-regnetx_160', 'timm-resnest200e']
 
     submission_dir = 'submissions/Ensemble.csv'
-    make_submission(models, backbones, 'cpu', 'data', submission_dir)
+    make_submission(models, backbones, 'cpu', 'data', submission_dir)"""
