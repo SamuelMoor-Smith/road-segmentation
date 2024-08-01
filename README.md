@@ -7,6 +7,7 @@ First things first, you must clone this repository on your local machine or clus
 
 ```bash
 git clone https://github.com/SamuelMoor-Smith/road-segmentation.git
+cd road-segmentation/
 ```
 
 ## Virtual Environment/Requirement Installation
