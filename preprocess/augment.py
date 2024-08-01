@@ -18,9 +18,9 @@ def transformations(method: str):
     elif method == 'appearance':
         return A.OneOf([
             A.RandomShadow(p=1, num_shadows_lower=1, num_shadows_upper=3, shadow_dimension=5),
-            A.CoarseDropout(max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8,
+            A.CoarseDropout(max_holes=8, max_height=50, max_width=50, min_holes=2, min_height=16, min_width=16,
                             fill_value=0, p=1),
-            A.GaussNoise(p=1, var_limit=(0.2, 0.5))
+            A.GaussNoise(p=1, var_limit=(0.1, 0.3))
         ], p=0.75)
     elif method == 'color':
         return A.OneOf([
@@ -49,9 +49,9 @@ def transformations(method: str):
             ], p=0.75),
             A.OneOf([
                 A.RandomShadow(p=1, num_shadows_lower=1, num_shadows_upper=3, shadow_dimension=5),
-                A.CoarseDropout(max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8,
-                                fill_value=0, p=1),
-                A.GaussNoise(p=1, var_limit=(0.2, 0.5))
+                A.CoarseDropout(max_holes=8, max_height=50, max_width=50, min_holes=2, min_height=16, min_width=16,
+                            fill_value=0, p=1),
+                A.GaussNoise(p=1, var_limit=(0.1, 0.3))
                 # A.RandomShadow(p=1, num_shadows_lower=1, num_shadows_upper=3, shadow_dimension=5),
                 # A.CoarseDropout(max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8,
                 #                 fill_value=0, p=1),
