@@ -1,6 +1,4 @@
 import albumentations as A
-import torchvision.transforms.functional as TF
-import random
 from albumentations.pytorch import ToTensorV2
 
 
@@ -114,7 +112,7 @@ def augment(img_size: int = 384, augmentation: str = 'standard'):
             A.Resize(height=img_size, width=img_size, p=1.0)
         ], p=1)
 
-    
+
 def to_tensor():
     return A.Compose([ToTensorV2()])
 

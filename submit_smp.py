@@ -22,15 +22,15 @@ def patch_to_label(patch):
         return 0
 
 
-def compute_true_count(i, k, l, patched_preds):
-    top = patched_preds[i][k-1][l]
-    bot = patched_preds[i][k+1][l]
-    left = patched_preds[i][k][l-1]
-    right = patched_preds[i][k][l+1]
-    tl = patched_preds[i][k-1][l-1]
-    tr = patched_preds[i][k-1][l+1]
-    bl = patched_preds[i][k+1][l-1]
-    br = patched_preds[i][k+1][l+1]
+def compute_true_count(k, l, patched_preds):
+    top = patched_preds[k-1][l]
+    bot = patched_preds[k+1][l]
+    left = patched_preds[k][l-1]
+    right = patched_preds[k][l+1]
+    tl = patched_preds[k-1][l-1]
+    tr = patched_preds[k-1][l+1]
+    bl = patched_preds[k+1][l-1]
+    br = patched_preds[k+1][l+1]
     variables = [top, bot, left, right, tl, tr, br, bl]
     true_count = sum(variables)
     return true_count
@@ -38,23 +38,21 @@ def compute_true_count(i, k, l, patched_preds):
 
 def post_process_patches(patched_preds):
     postprocessed_patches = np.empty_like(patched_preds)
-    for i in range(len(patched_preds)):
-        for k in range(25):
-            for l in range(25):
-                if k > 0 and k < 24 and l > 0 and l < 24:
-                    true_count = compute_true_count(i, k, l, patched_preds)
-                    if patched_preds[i][k][l] == 0:
-                        if true_count == 8:
-                            postprocessed_patches[i][k][l] = 0.7
-                        else:
-                            postprocessed_patches[i][k][l] = patched_preds[i][k][l]
-                    else:
-                        if true_count == 0:
-                            postprocessed_patches[i][k][l] = 0.3
-                        else:
-                            postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+    for k in range(25):
+        for l in range(25):
+            if k > 0 and k < 24 and l > 0 and l < 24:
+                true_count = compute_true_count(k, l, patched_preds)
+                if patched_preds[k][l] == 0:
+                    postprocessed_patches[k][l] = patched_preds[k][l]
                 else:
-                    postprocessed_patches[i][k][l] = patched_preds[i][k][l]
+                    if true_count == 0:
+                        postprocessed_patches[k][l] = 0.3
+                    else:
+                        postprocessed_patches[k][l] = patched_preds[k][l]
+            else:
+                postprocessed_patches[k][l] = patched_preds[k][l]
+
+    postprocessed_patches[postprocessed_patches == 0.3] = 0
     return postprocessed_patches
 
 
@@ -158,8 +156,57 @@ def get_preds(model, backbone, device, test_dir):
                 test_pred.append(mask)
     return test_pred, test_dataset.filenames
 
+def load_model(model_type, backbone, checkpoint_path):
+    if model_type == 'UnetPlusPlus':
+        model = smp.UnetPlusPlus(
+            encoder_name=backbone,
+            encoder_weights='imagenet',
+            decoder_channels=[256, 128, 64, 32, 16],
+            decoder_attention_type=None,
+            classes=1,
+            activation=None,
+        )
+    elif model_type == 'DeepLabV3Plus':
+        model = smp.DeepLabV3Plus(
+            encoder_name=backbone,
+            encoder_weights='imagenet',
+            classes=1,
+            activation=None,
+        )
+    elif model_type == 'PSPNet':
+        model = smp.PSPNet(
+            encoder_name=backbone,
+            encoder_weights='imagenet',
+            classes=1,
+            activation=None,
+        )
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
+
+    state_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+    model.load_state_dict(state_dict)
+    return model
+
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run ensemble model inference.")
+    parser.add_argument('--models', nargs='+', required=True,
+                        help="List of model types (e.g., UnetPlusPlus DeepLabV3Plus PSPNet)")
+    parser.add_argument('--checkpoints', nargs='+', required=True,
+                        help="List of checkpoint paths corresponding to the models")
+    parser.add_argument('--backbones', nargs='+', required=True, help="List of backbones corresponding to the models")
+    parser.add_argument('--device', default='cpu', help="Device to run the models on (e.g., 'cpu', 'cuda')")
+    parser.add_argument('--data-dir', default='data', help="Directory containing the input data")
+    parser.add_argument('--submission-dir', default='submissions/Ensemble.csv', help="Path to save the submission")
+
+    args = parser.parse_args()
+
+    if not (len(args.models) == len(args.checkpoints) == len(args.backbones)):
+        raise ValueError("The number of models, checkpoints, and backbones must match")
+
+    models = [load_model(m, b, c) for m, b, c in zip(args.models, args.backbones, args.checkpoints)]
+
+    make_submission(models, args.backbones, args.device, args.data_dir, args.submission_dir)
     model1 = smp.UnetPlusPlus(
         encoder_name='efficientnet-b7',
         encoder_weights='imagenet',
