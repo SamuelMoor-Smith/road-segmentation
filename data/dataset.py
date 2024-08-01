@@ -156,4 +156,3 @@ class TestDataset(torch.utils.data.Dataset):
         image = image.to(torch.float32)
 
         return image
-
