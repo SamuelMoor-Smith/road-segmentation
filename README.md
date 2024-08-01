@@ -22,7 +22,20 @@ pip install -r requirements.txt
 
 ## Usage
 
+The training script for training a model using segmentation_models_pytorch is train_smp.py. The available models are UnetPlusPlus,
+PSPNet and DeepLabV3Plus. The script uses the TrainEpoch and ValidEpoch from the deprecated utils module from smp
+and thus we have copied the code here.
 
+How to use:
+    1. Create a config file in the config_loader.py file
+    2. Activate a virtual environment with python version 3.10
+    3. pip install -r requirements.txt
+    4. Run the script with the following command:
+    ```bash
+    python train_smp.py --config unetpp_b5 --data_dir /path/to/data
+    ```
+
+In order to test your submission, run:
 
 ## Team/Contributors
 - Sebastian Hönig
