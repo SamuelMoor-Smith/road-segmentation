@@ -15,7 +15,7 @@ cd road-segmentation/
 Now, you must have all the required libraries installed. The easiest way to do this is with a virtual environment. You can either do this with conda or by:
 
 ```bash
-python -m venv roadsegenv
+python3 -m venv roadsegenv
 source roadsegenv/bin/activate
 pip install -r requirements.txt
 ```
