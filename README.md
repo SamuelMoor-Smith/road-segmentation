@@ -59,7 +59,7 @@ python train_smp.py --config 'config_name'
 
 ## Prediction
 
-To predict the models need to be in the model_checkpoints folder. You can download the models that we used for the final prediction from the following links:
+To predict the models need to be in the model_checkpoints folder. You can download our model checkpoints that we used for the final prediction from polybox:
 
 UNet++: https://polybox.ethz.ch/index.php/s/ia04RfduAomnGfY
 
@@ -69,13 +69,18 @@ PSPNet: https://polybox.ethz.ch/index.php/s/1enDvq10AekQZ6a
 
 You can either specify multiple models or just a single one to get the prediction. The length of the models, the checkpoints and the backbones has to match.
 
-The prediction to recreate our results (after downloading the models) can be achieved with the following command:
+The prediction to recreate our results (after downloading the model checkpoints) can be achieved with the following command:
 (Make sure you are in the road-segmentation directory and have the virtual environment activated)
 
 ```bash
-python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --device cpu --data-dir data --submission-dir submissions/Ensemble.csv
+python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --submission-dir submissions/Ensemble.csv
 ```
 
+If you would for example just predict with the Unet++ model you can run the following command:
+
+```bash
+python submit_smp.py --models UnetPlusPlus --checkpoints model_checkpoints/UNetpp_B7_Final.pt --backbones efficientnet-b7 --submission-dir submissions/Unetpp.csv
+```
 
 ## Team/Contributors
 - Sebastian Hönig

@@ -96,7 +96,7 @@ def make_submission(models, backbones, device, test_dir, submission_dir):
     if len(models) > 1:
         preds, fn = get_ensemble_preds(models, backbones, device, test_dir)
     else:
-        preds, fn = get_preds(models[0], backbones[0], test_dir, submission_dir)
+        preds, fn = get_preds(models[0], backbones[0], device, test_dir)
 
     masks_to_submission(submission_filename=submission_dir,
                         full_mask_dir="full_masks/",
@@ -195,8 +195,6 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoints', nargs='+', required=True,
                         help="List of checkpoint paths corresponding to the models")
     parser.add_argument('--backbones', nargs='+', required=True, help="List of backbones corresponding to the models")
-    parser.add_argument('--device', default='cpu', help="Device to run the models on (e.g., 'cpu', 'cuda')")
-    parser.add_argument('--data-dir', default='data', help="Directory containing the input data")
     parser.add_argument('--submission-dir', default='submissions/Ensemble.csv', help="Path to save the submission")
 
     args = parser.parse_args()
@@ -206,7 +204,7 @@ if __name__ == "__main__":
 
     models = [load_model(m, b, c) for m, b, c in zip(args.models, args.backbones, args.checkpoints)]
 
-    make_submission(models, args.backbones, args.device, args.data_dir, args.submission_dir)
+    make_submission(models, args.backbones, 'cpu', 'data', args.submission_dir)
     """model1 = smp.UnetPlusPlus(
         encoder_name='efficientnet-b7',
         encoder_weights='imagenet',
