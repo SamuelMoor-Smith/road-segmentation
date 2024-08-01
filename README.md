@@ -59,11 +59,16 @@ python train_smp.py --config 'config_name'
 ## Prediction
 
 To predict the models need to be in the model_checkpoints folder. You can download the models that we used for the final prediction from the following links:
+
 UNet++: https://polybox.ethz.ch/index.php/s/ia04RfduAomnGfY
+
 DeepLabV3+: https://polybox.ethz.ch/index.php/s/CsxmE1UssTIxhwj
+
 PSPNet: https://polybox.ethz.ch/index.php/s/1enDvq10AekQZ6a
 
-The prediction can be done with the following command:
+You can either specify multiple models or just a single one to get the prediction. The length of the models, the checkpoints and the backbones has to match.
+
+The prediction to recreate our results can be done with the following command:
 
 ```bash
 python submit_smp.py --models UnetPlusPlus DeepLabV3Plus PSPNet --checkpoints model_checkpoints/UNetpp_B7_Final.pt model_checkpoints/DeepLab_regnetx_final.pt model_checkpoints/Psp_resnet200e_final.pt --backbones efficientnet-b7 timm-regnetx_160 timm-resnest200e --device cpu --data-dir data --submission-dir submissions/Ensemble.csv
